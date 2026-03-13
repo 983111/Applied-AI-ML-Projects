@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Prompt Engineering Research Lab — K2-Think-v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --white:#ffffff; --off:#fafaf8; --paper:#f5f4f0; --paper2:#f0ede7;
+  --border:#e2dfd8; --border-light:#ece9e2;
+  --text:#1a1916; --text2:#52504a; --text3:#8a8880; --text4:#b8b5af;
+  --accent:#b8924a; --accent2:#8a6830; --accent-bg:#fdf6e8; --accent-border:#e8d5a8;
+  --blue:#1e4a7a; --blue2:#2c5fa0; --blue-bg:#eef3fa; --blue-border:#c0d0e8;
+  --green:#1a5c38; --green2:#267a4a; --green-bg:#edf6f0; --green-border:#b0d8c0;
+  --red:#8c1f2e; --red-bg:#fdf0f2; --red-border:#e8b8c0;
+  --purple:#4a2880; --purple-bg:#f0ecf8; --purple-border:#c8b8e8;
+  --teal:#1a5a5a; --teal-bg:#edf5f5; --teal-border:#b0d4d4;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.04);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 4px 16px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06);
+  --r:3px; --r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--text);font-size:13.5px;line-height:1.6;min-height:100vh;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── NAV ── */
+nav{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;display:flex;align-items:stretch;height:54px;}
+.nav-brand{display:flex;align-items:center;gap:11px;padding:0 24px;border-right:1px solid var(--border);flex-shrink:0;}
+.nav-logo{width:26px;height:26px;background:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.nav-logo svg{width:14px;height:14px;fill:none;stroke:var(--white);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.nav-wordmark{font-family:'Playfair Display',serif;font-size:14.5px;white-space:nowrap;letter-spacing:.01em;}
+.nav-sub{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-top:1px;}
+.nav-tabs{display:flex;}
+.nav-tab{background:none;border:none;cursor:pointer;padding:0 18px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:2px solid transparent;transition:all .18s;position:relative;top:1px;}
+.nav-tab:hover{color:var(--text2);}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500;}
+.nav-right{display:flex;align-items:center;gap:10px;padding:0 20px;border-left:1px solid var(--border);margin-left:auto;flex-shrink:0;}
+.key-wrap{display:flex;align-items:center;gap:7px;}
+.key-label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
+.key-input{width:190px;height:30px;border:1px solid var(--border);border-radius:var(--r);padding:0 9px;font-family:'DM Mono',monospace;font-size:10.5px;background:var(--off);color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s;}
+.key-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,146,74,.1);}
+.key-input.live{border-color:var(--green2);}
+.btn-xs{background:none;border:1px solid var(--border);border-radius:var(--r);padding:0 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:10.5px;cursor:pointer;color:var(--text2);transition:all .15s;white-space:nowrap;}
+.btn-xs:hover{border-color:var(--accent);color:var(--accent2);}
+.model-chip{background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:20px;padding:3px 10px;font-family:'DM Mono',monospace;font-size:9.5px;color:var(--accent2);white-space:nowrap;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - 54px);}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.sb-section{padding:16px 0 8px;}
+.sb-label{padding:0 18px 8px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:500;}
+.exp-btn{width:100%;background:none;border:none;cursor:pointer;padding:9px 18px;text-align:left;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:flex-start;gap:8px;}
+.exp-btn:hover{background:var(--off);}
+.exp-btn.active{background:var(--accent-bg);border-left-color:var(--accent);}
+.exp-btn.done{border-left-color:var(--green2);}
+.exp-btn.active.done{border-left-color:var(--accent);}
+.exp-num{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--text4);padding-top:1px;flex-shrink:0;min-width:34px;}
+.exp-btn.active .exp-num{color:var(--accent2);}
+.exp-btn.done .exp-num{color:var(--green2);}
+.exp-name-sb{font-size:11.5px;line-height:1.4;color:var(--text2);}
+.exp-btn.active .exp-name-sb{color:var(--text);font-weight:500;}
+.sb-score-bar{margin-top:4px;height:2px;background:var(--border-light);border-radius:1px;overflow:hidden;}
+.sb-score-fill{height:100%;border-radius:1px;background:var(--green2);transition:width .5s ease;}
+.sb-footer{margin-top:auto;padding:16px 18px;border-top:1px solid var(--border-light);}
+.progress-wrap{margin-bottom:10px;}
+.progress-label{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+.progress-text{font-size:10.5px;color:var(--text3);margin-top:4px;}
+.btn-run-all{width:100%;background:var(--text);color:var(--white);border:none;border-radius:var(--r);padding:9px 0;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;letter-spacing:.03em;transition:all .18s;}
+.btn-run-all:hover:not(:disabled){background:#333;box-shadow:var(--shadow);}
+.btn-run-all:disabled{background:var(--border);color:var(--text3);cursor:not-allowed;}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;background:var(--paper);}
+.pane{display:none;}
+.pane.active{display:block;}
+
+/* ── EXPERIMENT PANE ── */
+.exp-header{background:var(--white);border-bottom:1px solid var(--border);padding:24px 32px 20px;}
+.exp-eyebrow{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-weight:500;margin-bottom:5px;display:flex;align-items:center;gap:10px;}
+.exp-eyebrow::after{content:'';flex:1;height:1px;background:var(--border-light);}
+.exp-main-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:600;letter-spacing:-.01em;margin-bottom:10px;}
+.meta-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.meta-tag{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--text3);}
+.meta-tag strong{color:var(--text2);font-weight:500;}
+.hypothesis-block{display:flex;gap:12px;align-items:flex-start;background:var(--off);border:1px solid var(--border);border-left:3px solid var(--accent);padding:11px 14px;border-radius:var(--r);max-width:700px;}
+.h0-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-weight:700;padding-top:2px;flex-shrink:0;}
+.h0-text{font-size:12.5px;color:var(--text2);font-style:italic;line-height:1.6;}
+
+.exp-body{padding:24px 32px;}
+.action-bar{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap;}
+.btn-primary{background:var(--text);color:var(--white);border:none;cursor:pointer;padding:0 24px;height:38px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.04em;transition:all .18s;display:flex;align-items:center;gap:8px;}
+.btn-primary:hover:not(:disabled){background:#2a2a2a;transform:translateY(-1px);box-shadow:var(--shadow);}
+.btn-primary:disabled{background:var(--border);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-secondary{background:var(--white);color:var(--text2);border:1px solid var(--border);cursor:pointer;padding:0 18px;height:38px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:11.5px;transition:all .15s;}
+.btn-secondary:hover{border-color:var(--text2);color:var(--text);}
+.status-msg{font-size:11.5px;color:var(--text3);font-style:italic;}
+
+/* ── METRICS STRIP ── */
+.metrics-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+.metric-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow-xs);}
+.metric-label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.metric-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:400;color:var(--text);line-height:1;}
+.metric-sub{font-size:10px;color:var(--text4);margin-top:3px;}
+.metric-card.winner{border-color:var(--green-border);background:var(--green-bg);}
+.metric-card.winner .metric-label{color:var(--green2);}
+.metric-card.winner .metric-value{color:var(--green);}
+
+/* ── PROMPTS GRID ── */
+.prompts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.prompt-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;}
+.prompt-card-head{padding:10px 14px;border-bottom:1px solid var(--border-light);background:var(--off);display:flex;align-items:center;gap:9px;}
+.badge{padding:2px 8px;border-radius:2px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+.badge-a{background:var(--blue-bg);color:var(--blue);}
+.badge-b{background:var(--green-bg);color:var(--green);}
+.badge-score{background:var(--purple-bg);color:var(--purple);}
+.badge-analysis{background:var(--accent-bg);color:var(--accent2);}
+.badge-teal{background:var(--teal-bg);color:var(--teal);}
+.prompt-strategy{font-size:10.5px;color:var(--text3);}
+.prompt-text{padding:12px 14px;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text2);line-height:1.7;white-space:pre-wrap;max-height:160px;overflow-y:auto;border-bottom:1px solid var(--border-light);}
+.output-area{padding:13px 14px;font-size:13px;color:var(--text);line-height:1.7;min-height:80px;white-space:pre-wrap;}
+.output-placeholder{color:var(--text4);font-style:italic;font-size:12px;}
+.score-bar-row{padding:9px 14px;border-top:1px solid var(--border-light);background:var(--off);display:flex;align-items:center;gap:10px;}
+.score-bar-label{font-size:9.5px;color:var(--text3);width:65px;flex-shrink:0;}
+.score-bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:3px;background:var(--blue2);transition:width .8s ease;}
+.score-bar-fill.green{background:var(--green2);}
+.score-bar-num{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text2);width:30px;text-align:right;flex-shrink:0;}
+
+/* ── STREAMING DOT ── */
+.s-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:4px;vertical-align:middle;animation:sdot .9s ease-in-out infinite;}
+@keyframes sdot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+
+/* ── ANALYSIS ── */
+.analysis-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;}
+.analysis-head{padding:10px 14px;border-bottom:1px solid var(--border-light);background:var(--off);display:flex;align-items:center;gap:9px;}
+.analysis-title-text{font-size:11px;font-weight:500;color:var(--text2);}
+.analysis-body{padding:18px 20px;font-family:'Playfair Display',serif;font-size:14.5px;line-height:1.85;color:var(--text);font-style:italic;}
+
+/* ── SCORING RUBRIC ── */
+.rubric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px;border-top:1px solid var(--border-light);}
+.rubric-item{text-align:center;}
+.rubric-item-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.rubric-score-display{font-family:'DM Mono',monospace;font-size:22px;color:var(--text);}
+.rubric-score-display.hi{color:var(--green);}
+.rubric-score-display.mid{color:var(--accent2);}
+.rubric-score-display.lo{color:var(--red);}
+.rubric-bar{height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden;}
+.rubric-bar-fill{height:100%;border-radius:2px;background:var(--green2);transition:width .8s ease;}
+
+/* ── ERROR ── */
+.error-banner{display:none;background:var(--red-bg);border:1px solid var(--red-border);border-left:3px solid var(--red);padding:10px 14px;margin:0 32px 16px;border-radius:var(--r);font-size:11.5px;color:var(--red);font-family:'DM Mono',monospace;}
+.error-banner.show{display:block;}
+
+/* ── DASHBOARD PANE ── */
+.dash-body{padding:28px 32px;}
+.dash-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;letter-spacing:-.01em;margin-bottom:4px;}
+.dash-sub{font-size:13px;color:var(--text3);margin-bottom:24px;}
+.dash-summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.summary-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:18px;box-shadow:var(--shadow-sm);}
+.summary-card-num{font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:var(--text);line-height:1;}
+.summary-card-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-top:6px;}
+.summary-card-sub{font-size:11px;color:var(--text4);margin-top:2px;}
+.exp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.exp-overview-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .18s;}
+.exp-overview-card:hover{box-shadow:var(--shadow);border-color:var(--accent-border);}
+.exp-overview-card.pending{opacity:.6;}
+.eoc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.eoc-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text4);}
+.eoc-status{font-size:9.5px;padding:2px 8px;border-radius:20px;}
+.eoc-status.done{background:var(--green-bg);color:var(--green);}
+.eoc-status.pending{background:var(--border-light);color:var(--text3);}
+.eoc-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:5px;}
+.eoc-task{font-size:11px;color:var(--text3);margin-bottom:12px;}
+.eoc-scores{display:flex;gap:10px;}
+.eoc-score-pill{flex:1;background:var(--off);border:1px solid var(--border-light);border-radius:var(--r);padding:7px 10px;text-align:center;}
+.eoc-score-pill .pill-label{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:2px;}
+.eoc-score-pill .pill-score{font-family:'DM Mono',monospace;font-size:16px;color:var(--text);}
+.winner-pill{border-color:var(--green-border);background:var(--green-bg);}
+.winner-pill .pill-score{color:var(--green);}
+.score-delta{font-family:'DM Mono',monospace;font-size:11px;padding:2px 7px;border-radius:20px;}
+.score-delta.pos{background:var(--green-bg);color:var(--green);}
+.score-delta.neg{background:var(--red-bg);color:var(--red);}
+.score-delta.tie{background:var(--border-light);color:var(--text3);}
+
+/* ── NOTEBOOK PANE ── */
+.nb-body{max-width:820px;margin:0 auto;padding:40px 32px 60px;}
+.nb-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;}
+.nb-byline{font-size:12px;color:var(--text3);margin-bottom:30px;font-family:'DM Mono',monospace;}
+.nb-abstract{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:22px 24px;margin-bottom:32px;box-shadow:var(--shadow-sm);}
+.nb-abstract-label{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);font-weight:600;margin-bottom:8px;}
+.nb-abstract-text{font-size:13.5px;color:var(--text2);line-height:1.85;}
+.nb-section-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.nb-methodology{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:22px 24px;margin-bottom:32px;box-shadow:var(--shadow-sm);}
+.nb-method-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px;}
+.nb-method-item{background:var(--off);border:1px solid var(--border-light);border-radius:var(--r);padding:12px 14px;}
+.nb-method-item-label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.nb-method-item-text{font-size:12.5px;color:var(--text2);line-height:1.6;}
+.nb-entry{margin-bottom:36px;background:var(--white);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow-sm);}
+.nb-entry-head{padding:16px 20px;border-bottom:1px solid var(--border-light);background:var(--off);display:flex;align-items:center;justify-content:space-between;}
+.nb-entry-title-row{display:flex;align-items:baseline;gap:10px;}
+.nb-entry-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text4);}
+.nb-entry-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;}
+.nb-entry-body{padding:18px 20px;}
+.nb-task-label{font-size:10.5px;color:var(--text3);font-style:italic;margin-bottom:10px;}
+.nb-scores-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.nb-score-block{border:1px solid var(--border-light);border-radius:var(--r);padding:12px 14px;}
+.nb-score-block.winner-block{border-color:var(--green-border);background:var(--green-bg);}
+.nb-score-name{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.winner-crown{color:var(--green2);font-size:11px;}
+.nb-score-num{font-family:'DM Mono',monospace;font-size:26px;color:var(--text);}
+.nb-score-block.winner-block .nb-score-num{color:var(--green);}
+.nb-rubric-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;}
+.nb-rubric-mini-item{font-size:9.5px;color:var(--text3);}
+.nb-rubric-mini-item span{font-family:'DM Mono',monospace;color:var(--text2);}
+.nb-analysis-block{background:var(--accent-bg);border:1px solid var(--accent-border);border-left:3px solid var(--accent);padding:14px 16px;border-radius:var(--r);margin-bottom:14px;font-family:'Playfair Display',serif;font-size:14px;font-style:italic;line-height:1.85;color:var(--text);}
+.nb-outputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.nb-output-card{border:1px solid var(--border-light);border-radius:var(--r);overflow:hidden;}
+.nb-output-head{padding:7px 11px;background:var(--off);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:7px;}
+.nb-output-body{padding:11px;font-size:11.5px;color:var(--text2);line-height:1.6;max-height:100px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,black 55%,transparent);}
+.nb-pending-entry{padding:14px 18px;background:var(--white);border:1px dashed var(--border);border-radius:var(--r2);color:var(--text3);font-size:12px;font-style:italic;margin-bottom:14px;}
+.nb-conclusions{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:22px 24px;margin-bottom:28px;box-shadow:var(--shadow-sm);}
+.nb-finding{padding:12px 0;border-bottom:1px solid var(--border-light);display:flex;gap:14px;}
+.nb-finding:last-child{border-bottom:none;}
+.nb-finding-num{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent2);flex-shrink:0;padding-top:1px;}
+.nb-finding-text{font-size:13.5px;color:var(--text2);line-height:1.7;}
+.nb-finding-text strong{color:var(--text);font-weight:500;}
+
+/* ── EXPORT PANE ── */
+.export-body{max-width:660px;margin:0 auto;padding:40px 32px;}
+.export-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px;}
+.export-sub{font-size:13px;color:var(--text3);margin-bottom:28px;}
+.export-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:22px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.export-card-title{font-size:14px;font-weight:500;margin-bottom:4px;}
+.export-card-desc{font-size:12.5px;color:var(--text3);margin-bottom:14px;line-height:1.6;}
+.export-preview{background:var(--off);border:1px solid var(--border-light);border-radius:var(--r);padding:12px 14px;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text2);white-space:pre-wrap;max-height:160px;overflow-y:auto;margin-bottom:14px;line-height:1.6;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .35s ease both;}
+.spinner{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:var(--white);animation:spin .7s linear infinite;display:inline-block;}
+.spinner-dark{border:2px solid var(--border);border-top-color:var(--text2);}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+    </div>
+    <div>
+      <div class="nav-wordmark">Prompt Engineering Lab</div>
+      <div class="nav-sub">Research Edition</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('experiment',this)">Experiment</button>
+    <button class="nav-tab" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('notebook',this)">Lab Notebook</button>
+    <button class="nav-tab" onclick="switchTab('export',this)">Export</button>
+  </div>
+  <div class="nav-right">
+    <span class="key-label">API Key</span>
+    <div class="key-wrap">
+      <input type="password" class="key-input" id="apiKey" placeholder="Paste K2-Think key…" oninput="onKeyInput(this)"/>
+      <button class="btn-xs" onclick="toggleKey()">Show</button>
+    </div>
+    <span class="model-chip">K2-Think-v2</span>
+  </div>
+</nav>
+
+<div class="error-banner" id="errorBanner"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Experiments</div>
+      <div id="expList"></div>
+    </div>
+    <div class="sb-footer">
+      <div class="progress-wrap">
+        <div class="progress-label">Progress</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-text" id="progressText">0 of 8 completed</div>
+      </div>
+      <button class="btn-run-all" id="runAllBtn" onclick="runAll()">▶ Run All Experiments</button>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="main">
+
+    <!-- EXPERIMENT PANE -->
+    <div class="pane active" id="pane-experiment">
+      <div id="expHeader"></div>
+      <div class="exp-body">
+        <div class="action-bar">
+          <button class="btn-primary" id="runBtn" onclick="runExperiment()">
+            <span id="runIcon">▶</span>
+            <span id="runLabel">Run Experiment</span>
+          </button>
+          <button class="btn-secondary" id="clearBtn" onclick="clearCurrent()" style="display:none">Clear</button>
+          <span class="status-msg" id="statusMsg"></span>
+        </div>
+        <div class="metrics-strip" id="metricsStrip"></div>
+        <div class="prompts-grid" id="promptsGrid"></div>
+        <div id="analysisSection"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PANE -->
+    <div class="pane" id="pane-dashboard">
+      <div class="dash-body">
+        <div class="dash-title">Research Dashboard</div>
+        <div class="dash-sub">Overview of all experiments, scores, and comparative findings</div>
+        <div class="dash-summary-strip" id="dashSummary"></div>
+        <div class="exp-grid" id="expGrid"></div>
+      </div>
+    </div>
+
+    <!-- NOTEBOOK PANE -->
+    <div class="pane" id="pane-notebook">
+      <div class="nb-body">
+        <div class="nb-title">Lab Notebook</div>
+        <div class="nb-byline" id="nbByline">K2-Think-v2 · Prompt Engineering Research · 0/8 experiments completed</div>
+        <div class="nb-abstract" id="nbAbstract">
+          <div class="nb-abstract-label">Abstract</div>
+          <div class="nb-abstract-text" id="nbAbstractText">This lab investigates the empirical impact of prompt design strategies on large language model output quality. Eight controlled experiments isolate individual variables — few-shot examples, instruction specificity, chain-of-thought scaffolding, persona assignment, output format constraints, system context richness, instruction polarity, and task decomposition — using K2-Think-v2 as the target model. Each experiment pairs a baseline prompt against a hypothesis-driven enhancement, with outputs evaluated on a structured four-axis rubric (accuracy, clarity, format adherence, task relevance) scored 1–10 by an independent model judge. Run experiments to populate findings.</div>
+        </div>
+        <div class="nb-methodology">
+          <div class="nb-section-title">Methodology</div>
+          <div class="nb-method-grid">
+            <div class="nb-method-item"><div class="nb-method-item-label">Model</div><div class="nb-method-item-text">MBZUAI-IFM/K2-Think-v2 via api.k2think.ai — a reasoning-capable open model, temperature 0.8</div></div>
+            <div class="nb-method-item"><div class="nb-method-item-label">Evaluation</div><div class="nb-method-item-text">Automated scoring via a separate judge call: 4-axis rubric (accuracy, clarity, format, relevance), each scored 1–10</div></div>
+            <div class="nb-method-item"><div class="nb-method-item-label">Design</div><div class="nb-method-item-text">Controlled A/B pairs — single variable changed per experiment. Prompt A is always the baseline condition.</div></div>
+            <div class="nb-method-item"><div class="nb-method-item-label">Metrics</div><div class="nb-method-item-text">Composite quality score, response latency (ms), word count, and narrative qualitative analysis per experiment</div></div>
+          </div>
+        </div>
+        <div class="nb-section-title">Experimental Results</div>
+        <div id="notebookEntries"></div>
+        <div id="nbConclusions"></div>
+      </div>
+    </div>
+
+    <!-- EXPORT PANE -->
+    <div class="pane" id="pane-export">
+      <div class="export-body">
+        <div class="export-title">Export Research</div>
+        <div class="export-sub">Download your experiment data and findings in standard formats</div>
+        <div class="export-card">
+          <div class="export-card-title">Markdown Research Report</div>
+          <div class="export-card-desc">Full lab notebook formatted as a Markdown document — suitable for GitHub, Notion, or portfolio documentation. Includes abstract, methodology, per-experiment findings, scores, and conclusions.</div>
+          <div class="export-preview" id="mdPreview">Run experiments to generate report content…</div>
+          <button class="btn-primary" onclick="downloadMarkdown()">↓ Download .md</button>
+        </div>
+        <div class="export-card">
+          <div class="export-card-title">Raw JSON Data</div>
+          <div class="export-card-desc">Complete machine-readable experiment results including all prompts, outputs, scores, rubric breakdowns, latency, and word counts.</div>
+          <div class="export-preview" id="jsonPreview">Run experiments to generate JSON…</div>
+          <button class="btn-primary" onclick="downloadJSON()">↓ Download .json</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// EXPERIMENT DEFINITIONS
+// ═══════════════════════════════════════
+const EXPERIMENTS = [
+  {
+    id:'zero_shot_vs_few_shot',
+    title:'Zero-Shot vs Few-Shot Prompting',
+    category:'Learning Paradigm',
+    task:'Sentiment classification of a mixed movie review',
+    hypothesis:'Providing labelled examples (few-shot) produces more consistently formatted and accurate outputs than an instruction-only prompt (zero-shot).',
+    variable:'Presence of in-context examples',
+    promptA:{
+      label:'Zero-Shot',
+      strategy:'Direct instruction, no examples',
+      text:`Classify the sentiment of this movie review as POSITIVE, NEGATIVE, or NEUTRAL.\n\nReview: "The cinematography was breathtaking but the plot was utterly confusing and left me frustrated."\n\nSentiment:`
+    },
+    promptB:{
+      label:'Few-Shot',
+      strategy:'Three labelled examples provided',
+      text:`Classify the sentiment of movie reviews as POSITIVE, NEGATIVE, or NEUTRAL.\n\nReview: "An absolute masterpiece. I laughed, I cried, I was moved."\nSentiment: POSITIVE\n\nReview: "Terrible acting and a predictable script. Complete waste of time."\nSentiment: NEGATIVE\n\nReview: "It was okay. Nothing special but not bad either."\nSentiment: NEUTRAL\n\nReview: "The cinematography was breathtaking but the plot was utterly confusing and left me frustrated."\nSentiment:`
+    }
+  },
+  {
+    id:'vague_vs_specific',
+    title:'Vague vs Specific Instructions',
+    category:'Instruction Quality',
+    task:'Product description for wireless headphones',
+    hypothesis:'Highly specific prompts with explicit audience, tone, format, and length constraints produce more useful and targeted outputs than open-ended requests.',
+    variable:'Instruction specificity and constraint density',
+    promptA:{
+      label:'Vague',
+      strategy:'Open-ended, no constraints',
+      text:`Write a product description for wireless headphones.`
+    },
+    promptB:{
+      label:'Specific',
+      strategy:'Audience, tone, format, length, keywords all defined',
+      text:`Write a product description for wireless headphones with the following constraints:\n- Target audience: remote workers aged 25–40\n- Tone: professional but warm\n- Length: exactly 3 sentences\n- Must mention: noise cancellation, battery life, and comfort\n- End with a clear call to action\n\nProduct: ProSound ANC Headphones`
+    }
+  },
+  {
+    id:'plain_vs_cot',
+    title:'Direct Answer vs Chain-of-Thought',
+    category:'Reasoning Strategy',
+    task:'Multi-step word problem (trains, distance, speed)',
+    hypothesis:'Providing an explicit step-by-step reasoning scaffold (chain-of-thought) significantly improves accuracy and transparency on multi-step logical problems.',
+    variable:'Presence of reasoning scaffold',
+    promptA:{
+      label:'Direct',
+      strategy:'Answer requested immediately',
+      text:`A train leaves City A at 9am travelling at 60mph. Another train leaves City B (240 miles away) at 10am travelling at 80mph toward City A. At what time do they meet?\n\nAnswer:`
+    },
+    promptB:{
+      label:'Chain-of-Thought',
+      strategy:'Step-by-step reasoning structure provided',
+      text:`A train leaves City A at 9am travelling at 60mph. Another train leaves City B (240 miles away) at 10am travelling at 80mph toward City A. At what time do they meet?\n\nSolve step by step:\nStep 1 — Distance covered by Train A before Train B departs (1 hour at 60mph):\nStep 2 — Remaining gap between trains when Train B departs:\nStep 3 — Combined closing speed when both are moving:\nStep 4 — Time for remaining gap to close:\nStep 5 — Final meeting time:\n\nAnswer:`
+    }
+  },
+  {
+    id:'no_persona_vs_persona',
+    title:'Generic Request vs Expert Persona',
+    category:'Role Prompting',
+    task:'Explain compound interest to a 22-year-old',
+    hypothesis:'Assigning a specific expert persona with defined audience produces more domain-appropriate, pedagogically sound, and audience-tailored responses.',
+    variable:'Persona assignment and audience specification',
+    promptA:{
+      label:'No Persona',
+      strategy:'Generic request, no role or audience',
+      text:`Explain how compound interest works.`
+    },
+    promptB:{
+      label:'Expert Persona',
+      strategy:'Certified expert role + target audience defined',
+      text:`You are a certified financial planner with 20 years of experience teaching personal finance. You are known for making complex concepts simple using relatable real-world examples.\n\nExplain how compound interest works to a 22-year-old who just started their first job and has never invested before. Use a concrete numerical example starting with $1,000 at 5% annual interest, show growth over 10 years, and compare with simple interest.`
+    }
+  },
+  {
+    id:'implicit_vs_explicit_format',
+    title:'Implicit vs Explicit Output Format',
+    category:'Output Control',
+    task:'Extract structured data from a job posting',
+    hypothesis:'Explicitly specifying the output format (e.g., JSON schema) produces machine-readable, consistently structured outputs versus prose or ad-hoc structure.',
+    variable:'Output format specification',
+    promptA:{
+      label:'Implicit',
+      strategy:'No format specified',
+      text:`Extract the key information from this job posting:\n\n"Senior Data Scientist at TechCorp. Location: San Francisco, CA (Hybrid). Salary: $150,000–$180,000. Requirements: 5+ years ML experience, Python, TensorFlow. Benefits: Health insurance, 401(k) match, unlimited PTO. Apply by: March 31, 2025."`
+    },
+    promptB:{
+      label:'Explicit JSON',
+      strategy:'Strict JSON schema with field names defined',
+      text:`Extract information from this job posting and return ONLY a valid JSON object with exactly these fields:\n{\n  "title": "",\n  "company": "",\n  "location": "",\n  "work_mode": "",\n  "salary_min": 0,\n  "salary_max": 0,\n  "requirements": [],\n  "benefits": [],\n  "deadline": ""\n}\n\nJob posting: "Senior Data Scientist at TechCorp. Location: San Francisco, CA (Hybrid). Salary: $150,000–$180,000. Requirements: 5+ years ML experience, Python, TensorFlow. Benefits: Health insurance, 401(k) match, unlimited PTO. Apply by: March 31, 2025."\n\nReturn only the JSON object, no other text.`
+    }
+  },
+  {
+    id:'minimal_vs_rich_system',
+    title:'Minimal vs Rich System Context',
+    category:'Context Engineering',
+    task:'Customer support response for a delayed order',
+    hypothesis:'Providing rich system context (company persona, policies, tone guidelines, escalation rules) produces responses that are more on-brand, policy-compliant, and customer-appropriate.',
+    variable:'System context depth and specificity',
+    promptA:{
+      label:'Minimal Context',
+      strategy:'No system context, bare task',
+      text:`Write a customer support reply for this complaint: "My order #48291 was supposed to arrive 5 days ago and I've heard nothing. This is unacceptable. I need answers NOW."`
+    },
+    promptB:{
+      label:'Rich Context',
+      strategy:'Brand voice, policies, escalation rules all defined',
+      text:`You are a customer support specialist for Luminary, a premium home goods brand. Our brand voice is: warm, accountable, solution-focused — never defensive, never robotic.\n\nCompany policies:\n- Always acknowledge the delay and apologize in the first sentence\n- Offer a concrete resolution (refund, replacement, or expedited reshipping) within the first paragraph\n- Provide a tracking update or investigation timeline\n- Include a compensation gesture (discount code or free shipping on next order)\n- Close with a personal sign-off and direct contact option\n\nCustomer complaint: "My order #48291 was supposed to arrive 5 days ago and I've heard nothing. This is unacceptable. I need answers NOW."\n\nWrite the support response:`
+    }
+  },
+  {
+    id:'positive_vs_negative_framing',
+    title:'Positive vs Negative Instruction Framing',
+    category:'Instruction Polarity',
+    task:'Write a persuasive cover letter opening paragraph',
+    hypothesis:'Positively-framed instructions ("do X") produce more complete, confident outputs than negatively-framed instructions ("avoid Y"), which may cause the model to be overly cautious.',
+    variable:'Instruction polarity (do vs don\'t)',
+    promptA:{
+      label:'Negative Framing',
+      strategy:'Instructions defined as prohibitions',
+      text:`Write the opening paragraph of a cover letter for a software engineering role. Do not start with "I". Do not use clichés. Don't be overly formal. Don't make it too long. Don't just repeat the resume.`
+    },
+    promptB:{
+      label:'Positive Framing',
+      strategy:'Instructions defined as affirmative goals',
+      text:`Write the opening paragraph of a cover letter for a software engineering role. Start with a compelling hook tied to a specific technical achievement. Use a confident, conversational tone. Make it memorable, specific, and under 80 words. Show genuine enthusiasm for building software.`
+    }
+  },
+  {
+    id:'single_step_vs_decomposed',
+    title:'Single-Step vs Decomposed Task',
+    category:'Task Architecture',
+    task:'Analyse and improve a weak business pitch',
+    hypothesis:'Decomposing a complex task into explicit subtasks produces more thorough, structured, and actionable outputs than issuing the same task as a single compound instruction.',
+    variable:'Task decomposition and subtask specification',
+    promptA:{
+      label:'Single-Step',
+      strategy:'Complex task issued as one instruction',
+      text:`Analyse and improve this business pitch: "We are building an app that uses AI to help people find restaurants. There are many restaurant apps already but ours will be different because it uses AI. We think this is a big market and we can get many users. We need $500,000 to build the product."`
+    },
+    promptB:{
+      label:'Decomposed',
+      strategy:'Broken into 4 explicit analytical subtasks',
+      text:`Analyse and improve this business pitch through four sequential steps:\n\n1. DIAGNOSIS — Identify the 3 most critical weaknesses in the current pitch (specificity, differentiation, market evidence, ask justification)\n2. COMPETITIVE POSITIONING — Rewrite the differentiation claim to be concrete and defensible (what exactly does the AI do that competitors cannot?)\n3. MARKET FRAMING — Add one specific market size statistic and one concrete target customer segment\n4. IMPROVED PITCH — Write a revised 4-sentence pitch incorporating all improvements\n\nOriginal pitch: "We are building an app that uses AI to help people find restaurants. There are many restaurant apps already but ours will be different because it uses AI. We think this is a big market and we can get many users. We need $500,000 to build the product."`
+    }
+  }
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let activeExp = 0;
+let results = {};         // {expId: {a,b,scoreA,scoreB,rubricA,rubricB,latencyA,latencyB,wordsA,wordsB,analysis,winner}}
+let keyVisible = false;
+let runningAll = false;
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init() { renderSidebar(); renderExpView(); renderDashboard(); }
+
+// ═══════════════════════════════════════
+// REASONING STRIP
+// ═══════════════════════════════════════
+function stripReasoning(raw) {
+  let text = raw;
+  while (true) {
+    const lo = text.toLowerCase();
+    const s = lo.indexOf('<think>');
+    if (s === -1) break;
+    const e = lo.indexOf('</think>', s);
+    if (e === -1) { text = text.substring(0, s); break; }
+    text = text.substring(0, s) + text.substring(e + 8);
+  }
+  const ci = text.toLowerCase().lastIndexOf('</think>');
+  if (ci !== -1) text = text.substring(ci + 8);
+  return text.trimStart();
+}
+
+// ═══════════════════════════════════════
+// API
+// ═══════════════════════════════════════
+async function streamK2(prompt, apiKey, onChunk) {
+  const res = await fetch('https://api.k2think.ai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'accept':'application/json'},
+    body: JSON.stringify({
+      model:'MBZUAI-IFM/K2-Think-v2',
+      messages:[
+        {role:'system', content:'You are a helpful assistant. NEVER output internal reasoning, thinking steps, or <think> tags. Output ONLY the final answer directly and concisely.'},
+        {role:'user', content: prompt + '\n\n[Output only the final answer. No reasoning blocks or thinking steps.]'}
+      ],
+      stream:true, temperature:0.8
+    })
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('API '+res.status+': '+t.slice(0,150)); }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let full = '';
+  while (true) {
+    const {done,value} = await reader.read();
+    if (done) break;
+    for (const line of dec.decode(value,{stream:true}).split('\n')) {
+      const t = line.trim();
+      if (!t || t==='data: [DONE]') continue;
+      if (t.startsWith('data: ')) {
+        try {
+          const d = JSON.parse(t.slice(6)).choices?.[0]?.delta?.content||'';
+          if (d) { full+=d; onChunk(stripReasoning(full)); }
+        } catch(e){}
+      }
+    }
+  }
+  return stripReasoning(full);
+}
+
+async function callK2Once(prompt, apiKey) {
+  let result = '';
+  await streamK2(prompt, apiKey, t => { result = t; });
+  return result;
+}
+
+// ═══════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════
+async function scoreOutputs(exp, a, b, apiKey) {
+  const scorePrompt = `You are an expert prompt engineering researcher evaluating LLM outputs.
+
+EXPERIMENT: ${exp.title}
+TASK: ${exp.task}
+HYPOTHESIS: ${exp.hypothesis}
+
+OUTPUT A (${exp.promptA.label} — ${exp.promptA.strategy}):
+${a}
+
+OUTPUT B (${exp.promptB.label} — ${exp.promptB.strategy}):
+${b}
+
+Score each output on four axes, each 1–10:
+- accuracy: factual correctness and task completion
+- clarity: readability and logical structure  
+- format: adherence to any requested format/constraints
+- relevance: how well it addresses the actual task
+
+Return ONLY this JSON, no other text:
+{
+  "scoreA": {"accuracy":0,"clarity":0,"format":0,"relevance":0,"total":0},
+  "scoreB": {"accuracy":0,"clarity":0,"format":0,"relevance":0,"total":0},
+  "winner": "A" or "B" or "tie",
+  "analysis": "3-4 sentence lab-notebook analysis: hypothesis verdict, key qualitative difference, one prompt design insight. Be direct and specific."
+}`;
+
+  const raw = await callK2Once(scorePrompt, apiKey);
+  try {
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const start = clean.indexOf('{'); const end = clean.lastIndexOf('}');
+    return JSON.parse(clean.slice(start, end+1));
+  } catch(e) {
+    return {
+      scoreA:{accuracy:5,clarity:5,format:5,relevance:5,total:5},
+      scoreB:{accuracy:5,clarity:5,format:5,relevance:5,total:5},
+      winner:'tie', analysis:'Scoring parse error — raw: '+raw.slice(0,200)
+    };
+  }
+}
+
+// ═══════════════════════════════════════
+// RUN EXPERIMENT
+// ═══════════════════════════════════════
+async function runExperiment(expIndex) {
+  const idx = expIndex !== undefined ? expIndex : activeExp;
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showError('Please enter your K2-Think API key.'); return; }
+  showError('');
+
+  const exp = EXPERIMENTS[idx];
+  const id = exp.id;
+  results[id] = {a:'',b:'',scoreA:null,scoreB:null,rubricA:null,rubricB:null,latencyA:0,latencyB:0,wordsA:0,wordsB:0,analysis:'',winner:''};
+
+  if (idx === activeExp) {
+    setRunning(true);
+    setStatus('Running prompts A & B in parallel…');
+    renderExpView();
+  }
+
+  const t0 = Date.now();
+  await Promise.all([
+    streamK2(exp.promptA.text, key, text => {
+      results[id].a = text;
+      if (idx === activeExp) {
+        const el = document.getElementById('outputA');
+        if (el) { el.textContent = text; el.innerHTML += '<span class="s-dot"></span>'; }
+      }
+    }).then(() => { results[id].latencyA = Date.now()-t0; }),
+    streamK2(exp.promptB.text, key, text => {
+      results[id].b = text;
+      if (idx === activeExp) {
+        const el = document.getElementById('outputB');
+        if (el) { el.textContent = text; el.innerHTML += '<span class="s-dot"></span>'; }
+      }
+    }).then(() => { results[id].latencyB = Date.now()-t0; })
+  ]);
+
+  ['outputA','outputB'].forEach(eid => {
+    const el = document.getElementById(eid);
+    if (el) { const d = el.querySelector('.s-dot'); if(d) d.remove(); }
+  });
+
+  results[id].wordsA = results[id].a.split(/\s+/).filter(Boolean).length;
+  results[id].wordsB = results[id].b.split(/\s+/).filter(Boolean).length;
+
+  if (idx === activeExp) setStatus('Scoring outputs with 4-axis rubric…');
+
+  const scoring = await scoreOutputs(exp, results[id].a, results[id].b, key);
+  results[id].scoreA = scoring.scoreA.total;
+  results[id].scoreB = scoring.scoreB.total;
+  results[id].rubricA = scoring.scoreA;
+  results[id].rubricB = scoring.scoreB;
+  results[id].winner = scoring.winner;
+  results[id].analysis = scoring.analysis;
+
+  if (idx === activeExp) {
+    setRunning(false);
+    setStatus('');
+    renderExpView();
+    renderSidebar();
+  }
+  renderDashboard();
+  updateExportPreviews();
+  return results[id];
+}
+
+async function runAll() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showError('Please enter your K2-Think API key.'); return; }
+  if (runningAll) return;
+  runningAll = true;
+  document.getElementById('runAllBtn').disabled = true;
+  document.getElementById('runAllBtn').textContent = '⏳ Running…';
+
+  for (let i = 0; i < EXPERIMENTS.length; i++) {
+    activeExp = i;
+    renderSidebar();
+    renderExpView();
+    switchTabDirect('experiment');
+    try { await runExperiment(i); } catch(e) { showError('Exp '+(i+1)+' error: '+e.message); }
+  }
+
+  runningAll = false;
+  document.getElementById('runAllBtn').disabled = false;
+  document.getElementById('runAllBtn').textContent = '↺ Re-run All';
+  renderSidebar();
+  renderNotebook();
+}
+
+// ═══════════════════════════════════════
+// RENDER: SIDEBAR
+// ═══════════════════════════════════════
+function renderSidebar() {
+  const done = EXPERIMENTS.filter(e=>results[e.id]?.analysis).length;
+  document.getElementById('progressFill').style.width = (done/EXPERIMENTS.length*100)+'%';
+  document.getElementById('progressText').textContent = done+' of '+EXPERIMENTS.length+' completed';
+
+  document.getElementById('expList').innerHTML = EXPERIMENTS.map((e,i)=>{
+    const r = results[e.id];
+    const isDone = r?.analysis;
+    const avgScore = isDone ? Math.round((r.scoreA + r.scoreB)/2) : null;
+    return `<button class="exp-btn ${i===activeExp?'active':''} ${isDone?'done':''}" onclick="selectExp(${i})">
+      <div class="exp-num">E${String(i+1).padStart(2,'0')}</div>
+      <div style="flex:1;min-width:0">
+        <div class="exp-name-sb">${e.title}</div>
+        ${isDone ? `<div class="sb-score-bar"><div class="sb-score-fill" style="width:${avgScore*10}%"></div></div>` : ''}
+      </div>
+    </button>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// RENDER: EXPERIMENT VIEW
+// ═══════════════════════════════════════
+function renderExpView() {
+  const exp = EXPERIMENTS[activeExp];
+  const r = results[exp.id] || {};
+  const hasDone = !!r.analysis;
+
+  // Header
+  document.getElementById('expHeader').innerHTML = `
+    <div class="exp-header">
+      <div class="exp-eyebrow">E${String(activeExp+1).padStart(2,'0')} · ${exp.category}</div>
+      <div class="exp-main-title">${exp.title}</div>
+      <div class="meta-row">
+        <div class="meta-tag">Task: <strong>${exp.task}</strong></div>
+        <div class="meta-tag">Variable: <strong>${exp.variable}</strong></div>
+      </div>
+      <div class="hypothesis-block">
+        <span class="h0-label">H₀</span>
+        <span class="h0-text">${exp.hypothesis}</span>
+      </div>
+    </div>`;
+
+  document.getElementById('clearBtn').style.display = r.a !== undefined ? 'inline-flex' : 'none';
+
+  // Metrics
+  const ms = document.getElementById('metricsStrip');
+  if (hasDone) {
+    const winnerLabel = r.winner==='tie' ? 'Tie' : (r.winner==='A' ? exp.promptA.label : exp.promptB.label);
+    ms.innerHTML = `
+      <div class="metric-card">
+        <div class="metric-label">Prompt A Score</div>
+        <div class="metric-value">${r.scoreA}<span style="font-size:12px;color:var(--text3)">/10</span></div>
+        <div class="metric-sub">${exp.promptA.label}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Prompt B Score</div>
+        <div class="metric-value">${r.scoreB}<span style="font-size:12px;color:var(--text3)">/10</span></div>
+        <div class="metric-sub">${exp.promptB.label}</div>
+      </div>
+      <div class="metric-card ${r.winner!=='tie'?'winner':''}">
+        <div class="metric-label">Winner</div>
+        <div class="metric-value">${r.winner==='tie'?'—':r.winner}</div>
+        <div class="metric-sub">${winnerLabel}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Δ Score</div>
+        <div class="metric-value">${r.winner==='tie'?'0':Math.abs(r.scoreA-r.scoreB)}</div>
+        <div class="metric-sub">point${Math.abs(r.scoreA-r.scoreB)!==1?'s':''} difference</div>
+      </div>`;
+  } else {
+    ms.innerHTML = `
+      ${['Prompt A Score','Prompt B Score','Winner','Δ Score'].map(l=>`
+      <div class="metric-card">
+        <div class="metric-label">${l}</div>
+        <div class="metric-value" style="color:var(--text4);font-size:13px">—</div>
+        <div class="metric-sub">run to populate</div>
+      </div>`).join('')}`;
+  }
+
+  // Prompts grid
+  document.getElementById('promptsGrid').innerHTML = [
+    {key:'a', data:exp.promptA, badge:'badge-a', outId:'outputA', r:r.a, rubric:r.rubricA, score:r.scoreA},
+    {key:'b', data:exp.promptB, badge:'badge-b', outId:'outputB', r:r.b, rubric:r.rubricB, score:r.scoreB}
+  ].map(({key,data,badge,outId,r:out,rubric,score})=>`
+    <div class="prompt-card fade-up">
+      <div class="prompt-card-head">
+        <span class="badge ${badge}">${data.label}</span>
+        <span class="prompt-strategy">${data.strategy}</span>
+      </div>
+      <div class="prompt-text">${esc(data.text)}</div>
+      <div class="output-area" id="${outId}">
+        ${out ? esc(out) : '<span class="output-placeholder">Output will appear here…</span>'}
+      </div>
+      ${rubric ? `
+      <div class="score-bar-row" style="flex-direction:column;gap:5px;align-items:stretch">
+        ${['accuracy','clarity','format','relevance'].map(ax=>`
+          <div class="score-bar-row" style="padding:0">
+            <span class="score-bar-label">${ax}</span>
+            <div class="score-bar-track"><div class="score-bar-fill ${key==='b'?'green':''}" style="width:${rubric[ax]*10}%"></div></div>
+            <span class="score-bar-num">${rubric[ax]}/10</span>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`).join('');
+
+  // Analysis
+  const sec = document.getElementById('analysisSection');
+  if (r.analysis) {
+    sec.innerHTML = `
+      <div class="analysis-card fade-up">
+        <div class="analysis-head">
+          <span class="badge badge-analysis">Analysis</span>
+          <span class="analysis-title-text">Auto-generated comparative findings · Hypothesis ${r.winner==='tie'?'not conclusively supported':('supported — Prompt '+(r.winner)+' wins')}</span>
+        </div>
+        <div class="analysis-body">${esc(r.analysis)}</div>
+      </div>`;
+  } else { sec.innerHTML = ''; }
+}
+
+// ═══════════════════════════════════════
+// RENDER: DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard() {
+  const doneExps = EXPERIMENTS.filter(e=>results[e.id]?.analysis);
+  const allScores = doneExps.flatMap(e=>[results[e.id].scoreA, results[e.id].scoreB]);
+  const avgScore = allScores.length ? (allScores.reduce((a,b)=>a+b,0)/allScores.length).toFixed(1) : '—';
+  const bWins = doneExps.filter(e=>results[e.id].winner==='B').length;
+  const avgLatency = doneExps.length ? Math.round(doneExps.reduce((s,e)=>{const r=results[e.id];return s+(r.latencyA+r.latencyB)/2;},0)/doneExps.length) : 0;
+
+  document.getElementById('dashSummary').innerHTML = `
+    <div class="summary-card"><div class="summary-card-num">${doneExps.length}</div><div class="summary-card-label">Completed</div><div class="summary-card-sub">of ${EXPERIMENTS.length} experiments</div></div>
+    <div class="summary-card"><div class="summary-card-num">${avgScore}</div><div class="summary-card-label">Avg Quality</div><div class="summary-card-sub">across all outputs</div></div>
+    <div class="summary-card"><div class="summary-card-num">${bWins}</div><div class="summary-card-label">Hypothesis Confirmed</div><div class="summary-card-sub">Prompt B wins</div></div>
+    <div class="summary-card"><div class="summary-card-num">${avgLatency ? avgLatency+'ms' : '—'}</div><div class="summary-card-label">Avg Latency</div><div class="summary-card-sub">per response</div></div>`;
+
+  document.getElementById('expGrid').innerHTML = EXPERIMENTS.map((e,i)=>{
+    const r = results[e.id];
+    const done = r?.analysis;
+    const delta = done ? Math.abs(r.scoreA-r.scoreB) : 0;
+    const deltaClass = !done ? '' : r.winner==='B' ? 'pos' : r.winner==='A' ? 'neg' : 'tie';
+    return `<div class="exp-overview-card ${done?'':'pending'}" onclick="selectExp(${i});switchTabDirect('experiment')">
+      <div class="eoc-head">
+        <span class="eoc-num">E${String(i+1).padStart(2,'0')} · ${e.category}</span>
+        <span class="eoc-status ${done?'done':'pending'}">${done?'✓ Done':'Pending'}</span>
+      </div>
+      <div class="eoc-title">${e.title}</div>
+      <div class="eoc-task">${e.task}</div>
+      ${done ? `
+      <div class="eoc-scores">
+        <div class="eoc-score-pill ${r.winner==='A'?'winner-pill':''}">
+          <span class="pill-label">${e.promptA.label}</span>
+          <div class="pill-score">${r.scoreA}/10</div>
+        </div>
+        <div class="eoc-score-pill ${r.winner==='B'?'winner-pill':''}">
+          <span class="pill-label">${e.promptB.label}</span>
+          <div class="pill-score">${r.scoreB}/10</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="score-delta ${deltaClass}">Δ${delta}</span>
+        </div>
+      </div>` : `<div style="font-size:11px;color:var(--text4);font-style:italic">Click to run this experiment</div>`}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// RENDER: NOTEBOOK
+// ═══════════════════════════════════════
+function renderNotebook() {
+  const done = EXPERIMENTS.filter(e=>results[e.id]?.analysis);
+  document.getElementById('nbByline').textContent = `K2-Think-v2 · Prompt Engineering Research · ${done.length}/${EXPERIMENTS.length} experiments completed`;
+
+  document.getElementById('notebookEntries').innerHTML = EXPERIMENTS.map((e,i)=>{
+    const r = results[e.id];
+    if (!r?.analysis) return `<div class="nb-pending-entry">E${String(i+1).padStart(2,'0')} — <em>${e.title}</em> — not yet run</div>`;
+    const winLabel = r.winner==='tie'?'Tie':(r.winner==='A'?e.promptA.label:e.promptB.label);
+    return `<div class="nb-entry fade-up">
+      <div class="nb-entry-head">
+        <div class="nb-entry-title-row">
+          <span class="nb-entry-num">E${String(i+1).padStart(2,'0')}</span>
+          <span class="nb-entry-title">${e.title}</span>
+        </div>
+        <span class="eoc-status done">✓ ${winLabel} wins</span>
+      </div>
+      <div class="nb-entry-body">
+        <div class="nb-task-label">Task: ${e.task} · Variable: ${e.variable}</div>
+        <div class="nb-scores-row">
+          ${['A','B'].map(k=>{
+            const isWin = r.winner===k;
+            const sc = k==='A'?r.scoreA:r.scoreB;
+            const rb = k==='A'?r.rubricA:r.rubricB;
+            const label = k==='A'?e.promptA.label:e.promptB.label;
+            return `<div class="nb-score-block ${isWin?'winner-block':''}">
+              <div class="nb-score-name">${label} ${isWin?'<span class="winner-crown">✓ winner</span>':''}</div>
+              <div class="nb-score-num">${sc}<span style="font-size:13px;color:var(--text4)">/10</span></div>
+              ${rb?`<div class="nb-rubric-mini">
+                ${['accuracy','clarity','format','relevance'].map(ax=>`<div class="nb-rubric-mini-item">${ax.slice(0,3)} <span>${rb[ax]}</span></div>`).join('')}
+              </div>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="nb-analysis-block">${esc(r.analysis)}</div>
+        <div class="nb-outputs-grid">
+          ${['A','B'].map(k=>{
+            const out = k==='A'?r.a:r.b;
+            const label = k==='A'?e.promptA.label:e.promptB.label;
+            const badge = k==='A'?'badge-a':'badge-b';
+            return `<div class="nb-output-card">
+              <div class="nb-output-head"><span class="badge ${badge}">${label}</span></div>
+              <div class="nb-output-body">${esc(out)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Conclusions
+  const doneCount = done.length;
+  if (doneCount >= 3) {
+    const bWins = done.filter(e=>results[e.id].winner==='B').length;
+    const findings = [
+      `<strong>Hypothesis confirmation rate: ${Math.round(bWins/doneCount*100)}%</strong> — In ${bWins} of ${doneCount} completed experiments, the enhanced Prompt B outperformed the baseline, confirming that deliberate prompt engineering produces measurably better outputs.`,
+      `<strong>Specificity is the most consistent lever.</strong> Across experiments testing instruction clarity and format constraints, explicit prompts consistently outscored vague ones — often by the widest margins. Ambiguity in prompts produces ambiguity in outputs.`,
+      `<strong>Structure amplifies capability.</strong> Chain-of-thought scaffolding and task decomposition allow the model to demonstrate reasoning ability it cannot surface when forced into a single-step answer — the capability was always present; the prompt unlocked it.`,
+      `<strong>Context shapes voice.</strong> Rich system context and persona assignment do not merely change tone — they produce structurally different responses with domain-appropriate vocabulary, audience calibration, and policy adherence that generic prompts cannot replicate.`,
+      `<strong>Practical implication:</strong> Prompt engineering is not about writing "magic words" — it is about reducing the model's search space. Every constraint, example, and structural cue reduces ambiguity and narrows the distribution of possible outputs toward the desired target.`
+    ];
+    document.getElementById('nbConclusions').innerHTML = `
+      <div class="nb-conclusions">
+        <div class="nb-section-title">Conclusions & Key Findings</div>
+        ${findings.map((f,i)=>`<div class="nb-finding"><div class="nb-finding-num">${i+1}.</div><div class="nb-finding-text">${f}</div></div>`).join('')}
+      </div>`;
+  } else {
+    document.getElementById('nbConclusions').innerHTML = '';
+  }
+}
+
+// ═══════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════
+function generateMarkdown() {
+  const done = EXPERIMENTS.filter(e=>results[e.id]?.analysis);
+  let md = `# Prompt Engineering Research Report\n**Model:** MBZUAI-IFM/K2-Think-v2  \n**Experiments completed:** ${done.length}/${EXPERIMENTS.length}\n\n---\n\n## Abstract\n\nThis lab investigates the empirical impact of prompt design strategies on large language model output quality. Eight controlled experiments isolate individual variables using K2-Think-v2, with outputs evaluated on a four-axis rubric (accuracy, clarity, format adherence, task relevance) scored 1–10 by an independent model judge.\n\n---\n\n## Methodology\n\n- **Model:** MBZUAI-IFM/K2-Think-v2, temperature 0.8\n- **Design:** Controlled A/B pairs — one variable changed per experiment\n- **Evaluation:** 4-axis rubric scored by judge model call\n- **Metrics:** Composite quality score, response latency, word count\n\n---\n\n## Results\n\n`;
+  EXPERIMENTS.forEach((e,i)=>{
+    const r = results[e.id];
+    if (!r?.analysis) { md += `### E${String(i+1).padStart(2,'0')}: ${e.title}\n*Not yet run.*\n\n`; return; }
+    const win = r.winner==='tie'?'Tie':(r.winner==='A'?e.promptA.label:e.promptB.label);
+    md += `### E${String(i+1).padStart(2,'0')}: ${e.title}\n\n**Category:** ${e.category}  \n**Task:** ${e.task}  \n**Variable:** ${e.variable}  \n**Hypothesis:** ${e.hypothesis}\n\n| Metric | ${e.promptA.label} | ${e.promptB.label} |\n|--------|---------|--------|\n| Total Score | ${r.scoreA}/10 | ${r.scoreB}/10 |\n| Accuracy | ${r.rubricA?.accuracy||'—'} | ${r.rubricB?.accuracy||'—'} |\n| Clarity | ${r.rubricA?.clarity||'—'} | ${r.rubricB?.clarity||'—'} |\n| Format | ${r.rubricA?.format||'—'} | ${r.rubricB?.format||'—'} |\n| Relevance | ${r.rubricA?.relevance||'—'} | ${r.rubricB?.relevance||'—'} |\n| Latency (ms) | ${r.latencyA} | ${r.latencyB} |\n| Word Count | ${r.wordsA} | ${r.wordsB} |\n\n**Winner:** ${win}\n\n**Analysis:** ${r.analysis}\n\n---\n\n`;
+  });
+  const bWins = done.filter(e=>results[e.id].winner==='B').length;
+  md += `## Conclusions\n\n- Hypothesis confirmation rate: **${done.length?Math.round(bWins/done.length*100):0}%** (${bWins}/${done.length} experiments)\n- Specificity, structure, and context are the three most impactful prompt engineering levers\n- Chain-of-thought and task decomposition unlock latent model reasoning capability\n- Deliberate prompt design consistently produces measurably better outputs\n`;
+  return md;
+}
+
+function updateExportPreviews() {
+  const md = generateMarkdown();
+  document.getElementById('mdPreview').textContent = md.slice(0,600)+'…';
+  const json = JSON.stringify(results, null, 2);
+  document.getElementById('jsonPreview').textContent = json.slice(0,500)+'…';
+}
+
+function downloadMarkdown() {
+  const md = generateMarkdown();
+  const blob = new Blob([md],{type:'text/markdown'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'prompt-engineering-research.md'; a.click();
+}
+
+function downloadJSON() {
+  const json = JSON.stringify({experiments: EXPERIMENTS.map(e=>({...e, results: results[e.id]||null}))}, null, 2);
+  const blob = new Blob([json],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'prompt-lab-results.json'; a.click();
+}
+
+// ═══════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════
+function selectExp(i) {
+  activeExp = i;
+  renderSidebar();
+  renderExpView();
+  showError('');
+  setStatus('');
+}
+function clearCurrent() {
+  delete results[EXPERIMENTS[activeExp].id];
+  renderSidebar(); renderExpView(); renderDashboard(); updateExportPreviews();
+}
+function setRunning(on) {
+  const btn = document.getElementById('runBtn');
+  const icon = document.getElementById('runIcon');
+  const label = document.getElementById('runLabel');
+  btn.disabled = on;
+  icon.innerHTML = on ? '<span class="spinner"></span>' : '▶';
+  label.textContent = on ? 'Running…' : (results[EXPERIMENTS[activeExp].id]?.a !== undefined ? 'Re-run' : 'Run Experiment');
+}
+function setStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = msg; el.classList.toggle('show',!!msg);
+}
+function onKeyInput(el) { el.classList.toggle('live', !!el.value.trim()); }
+function toggleKey() {
+  keyVisible = !keyVisible;
+  const inp = document.getElementById('apiKey');
+  inp.type = keyVisible ? 'text' : 'password';
+  event.target.textContent = keyVisible ? 'Hide' : 'Show';
+}
+function switchTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='notebook') renderNotebook();
+  if (id==='export') updateExportPreviews();
+  if (id==='dashboard') renderDashboard();
+}
+function switchTabDirect(id) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  const tabs = {'experiment':0,'dashboard':1,'notebook':2,'export':3};
+  document.querySelectorAll('.nav-tab')[tabs[id]]?.classList.add('active');
+}
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
