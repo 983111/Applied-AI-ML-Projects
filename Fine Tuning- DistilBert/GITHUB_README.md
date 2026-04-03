@@ -5,7 +5,7 @@ Fine-tuned `distilbert-base-uncased` for 5-class IT support ticket routing using
 ## Quick start
 
 ```bash
-git clone https://github.com/your-username/distilbert-it-support-classifier
+git clone https://github.com/vishwajeet456/distilbert-it-support-classifier
 cd distilbert-it-support-classifier
 pip install -r requirements.txt
 
@@ -17,7 +17,7 @@ python src/train.py
 
 # 3. Train + push to Hub
 huggingface-cli login
-python src/train.py --push_to_hub --hub_model_id your-username/distilbert-it-support-classifier
+python src/train.py --push_to_hub --hub_model_id vishwajeet456/distilbert-it-support-classifier
 
 # 4. Run inference
 python src/inference.py
@@ -25,7 +25,7 @@ python src/inference.py
 
 ## Or run in Colab (free GPU, ~3 min)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/your-username/distilbert-it-support-classifier/blob/main/DistilBERT_IT_Support_Classifier.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vishwajeet456/distilbert-it-support-classifier/blob/main/DistilBERT_IT_Support_Classifier.ipynb)
 
 ## Project structure
 
@@ -52,6 +52,10 @@ python src/inference.py
 ## CV line
 
 > Fine-tuned DistilBERT on custom 300-row IT support ticket dataset for 5-class text classification, achieving 93.3% accuracy. Published on HuggingFace Hub.
+
+## Model on Hub
+
+[huggingface.co/vishwajeet456/distilbert-it-support-classifier](https://huggingface.co/vishwajeet456/distilbert-it-support-classifier)
 
 ## Labels
 
