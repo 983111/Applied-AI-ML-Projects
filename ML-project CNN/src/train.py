@@ -1,167 +1,215 @@
 """
-Training script for CIFAR-10 classifier.
+train.py
+────────
+Fine-tunes DistilBERT on the IT Support Ticket dataset using the
+HuggingFace Trainer API, evaluates on a held-out test split, and
+optionally pushes the final model + tokenizer to HuggingFace Hub.
 
 Usage:
-    python src/train.py
-    python src/train.py --epochs 50 --batch-size 256 --lr 0.01
+  python train.py                          # train locally
+  python train.py --push_to_hub           # train + push to Hub
+  python train.py --hub_model_id vishwajeet456/distilbert-it-support-classifier
+
+Requirements:
+  pip install transformers>=4.40 datasets scikit-learn accelerate torch huggingface_hub
 """
 
 import argparse
-import json
-import time
+import os
+import csv
+import random
+import numpy as np
 from pathlib import Path
 
+# ── HuggingFace imports ──────────────────────────────────────────────────────
+from datasets import Dataset, DatasetDict, ClassLabel, Features, Value
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    TrainingArguments,
+    Trainer,
+    EarlyStoppingCallback,
+    DataCollatorWithPadding,
+)
 import torch
-import torch.nn as nn
-from torch.optim.lr_scheduler import OneCycleLR
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 
-from data import get_loaders
-from model import CIFAR10Net, count_parameters
+# ── Config ───────────────────────────────────────────────────────────────────
+MODEL_CHECKPOINT = "distilbert-base-uncased"
+NUM_LABELS = 5
+LABEL_NAMES = ["billing", "hardware", "network", "account", "software"]
+DATA_PATH = "data/support_tickets.csv"
+OUTPUT_DIR = "outputs/distilbert-it-support"
+SEED = 42
 
-
-# ──────────────────────────────────────────────
-# Training / validation helpers
-# ──────────────────────────────────────────────
-
-def train_epoch(model, loader, criterion, optimizer, scheduler, device):
-    model.train()
-    running_loss, correct, total = 0.0, 0, 0
-
-    for imgs, labels in loader:
-        imgs, labels = imgs.to(device), labels.to(device)
-
-        optimizer.zero_grad()
-        outputs = model(imgs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        scheduler.step()
-
-        running_loss += loss.item() * imgs.size(0)
-        _, preds = outputs.max(1)
-        correct += preds.eq(labels).sum().item()
-        total   += imgs.size(0)
-
-    return running_loss / total, correct / total
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
 
 
-@torch.no_grad()
-def evaluate(model, loader, criterion, device):
-    model.eval()
-    running_loss, correct, total = 0.0, 0, 0
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-    for imgs, labels in loader:
-        imgs, labels = imgs.to(device), labels.to(device)
-        outputs = model(imgs)
-        loss = criterion(outputs, labels)
+def load_csv_dataset(path: str) -> DatasetDict:
+    """Load CSV, split 80/10/10 into train/val/test."""
+    rows = []
+    with open(path, encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append({"text": row["text"], "label": int(row["label"])})
 
-        running_loss += loss.item() * imgs.size(0)
-        _, preds = outputs.max(1)
-        correct += preds.eq(labels).sum().item()
-        total   += imgs.size(0)
+    random.shuffle(rows)
+    n = len(rows)
+    n_train = int(0.80 * n)
+    n_val   = int(0.10 * n)
 
-    return running_loss / total, correct / total
+    splits = {
+        "train": rows[:n_train],
+        "validation": rows[n_train : n_train + n_val],
+        "test": rows[n_train + n_val :],
+    }
 
+    features = Features({
+        "text": Value("string"),
+        "label": ClassLabel(num_classes=NUM_LABELS, names=LABEL_NAMES),
+    })
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
-
-def parse_args():
-    p = argparse.ArgumentParser(description="Train CIFAR-10 classifier")
-    p.add_argument("--epochs",     type=int,   default=30)
-    p.add_argument("--batch-size", type=int,   default=128)
-    p.add_argument("--lr",         type=float, default=0.01)
-    p.add_argument("--dropout",    type=float, default=0.4)
-    p.add_argument("--data-dir",   type=str,   default="./data")
-    p.add_argument("--out-dir",    type=str,   default="./outputs")
-    p.add_argument("--workers",    type=int,   default=4)
-    p.add_argument("--patience",   type=int,   default=10,
-                   help="Early stopping patience (epochs without val improvement)")
-    return p.parse_args()
+    return DatasetDict({
+        split: Dataset.from_list(data, features=features)
+        for split, data in splits.items()
+    })
 
 
-def main():
-    args = parse_args()
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+def tokenize_dataset(dataset: DatasetDict, tokenizer) -> DatasetDict:
+    def _tokenize(batch):
+        return tokenizer(batch["text"], truncation=True, max_length=128)
+    return dataset.map(_tokenize, batched=True, remove_columns=["text"])
 
-    # ── Device ──────────────────────────────────
-    device = (
-        torch.device("cuda")  if torch.cuda.is_available() else
-        torch.device("mps")   if torch.backends.mps.is_available() else
-        torch.device("cpu")
-    )
-    print(f"Using device: {device}")
 
-    # ── Data ────────────────────────────────────
-    train_loader, val_loader, _ = get_loaders(
-        args.data_dir, args.batch_size, num_workers=args.workers
-    )
-    print(f"Train batches: {len(train_loader)} | Val batches: {len(val_loader)}")
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    preds = np.argmax(logits, axis=-1)
+    return {
+        "accuracy": accuracy_score(labels, preds),
+        "f1_macro": f1_score(labels, preds, average="macro"),
+    }
 
-    # ── Model ───────────────────────────────────
-    model = CIFAR10Net(dropout=args.dropout).to(device)
-    print(f"Parameters: {count_parameters(model):,}")
 
-    # ── Optimizer & Scheduler ───────────────────
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=args.lr,
-        momentum=0.9, weight_decay=5e-4, nesterov=True,
-    )
-    scheduler = OneCycleLR(
-        optimizer, max_lr=args.lr,
-        steps_per_epoch=len(train_loader), epochs=args.epochs,
-        pct_start=0.3, anneal_strategy="cos",
+# ── Main ─────────────────────────────────────────────────────────────────────
+
+def main(args):
+    print(f"\n{'='*60}")
+    print(f"  DistilBERT Fine-Tuning: IT Support Ticket Classifier")
+    print(f"{'='*60}\n")
+
+    # 1. Load & tokenize data
+    print("▶ Loading dataset …")
+    raw_datasets = load_csv_dataset(DATA_PATH)
+    print(f"  Train: {len(raw_datasets['train'])} | "
+          f"Val: {len(raw_datasets['validation'])} | "
+          f"Test: {len(raw_datasets['test'])}")
+
+    print("▶ Loading tokenizer …")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+
+    print("▶ Tokenizing …")
+    tokenized = tokenize_dataset(raw_datasets, tokenizer)
+
+    # 2. Load model
+    print("▶ Loading model …")
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_CHECKPOINT,
+        num_labels=NUM_LABELS,
+        id2label={i: name for i, name in enumerate(LABEL_NAMES)},
+        label2id={name: i for i, name in enumerate(LABEL_NAMES)},
     )
 
-    # ── Training loop ───────────────────────────
-    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
-    best_val_acc = 0.0
-    patience_counter = 0
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    for epoch in range(1, args.epochs + 1):
-        t0 = time.time()
+    # 3. Training arguments
+    # Note: eval_strategy is the current name (transformers >= 4.40).
+    # Older versions used evaluation_strategy — upgrade if you see a warning.
+    training_args = TrainingArguments(
+        output_dir=OUTPUT_DIR,
+        num_train_epochs=5,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=32,
+        learning_rate=2e-5,
+        weight_decay=0.01,
+        warmup_ratio=0.1,
+        lr_scheduler_type="cosine",
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        metric_for_best_model="f1_macro",
+        greater_is_better=True,
+        logging_steps=10,
+        seed=SEED,
+        report_to="none",
+        push_to_hub=args.push_to_hub,
+        hub_model_id=args.hub_model_id if args.push_to_hub else None,
+        hub_strategy="end",
+    )
 
-        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, scheduler, device)
-        val_loss,   val_acc   = evaluate(  model, val_loader,   criterion, device)
+    # 4. Trainer
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized["train"],
+        eval_dataset=tokenized["validation"],
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
+    )
 
-        elapsed = time.time() - t0
-        history["train_loss"].append(train_loss)
-        history["train_acc" ].append(train_acc)
-        history["val_loss"  ].append(val_loss)
-        history["val_acc"   ].append(val_acc)
+    # 5. Train
+    print("\n▶ Training …")
+    trainer.train()
 
-        improved = val_acc > best_val_acc
-        if improved:
-            best_val_acc = val_acc
-            torch.save(model.state_dict(), out_dir / "best_model.pth")
-            patience_counter = 0
-        else:
-            patience_counter += 1
+    # 6. Evaluate on held-out test set
+    print("\n▶ Evaluating on test set …")
+    test_preds_output = trainer.predict(tokenized["test"])
+    test_preds  = np.argmax(test_preds_output.predictions, axis=-1)
+    test_labels = test_preds_output.label_ids
 
-        marker = "✓" if improved else " "
-        print(
-            f"Epoch {epoch:3d}/{args.epochs} [{elapsed:.1f}s] {marker} "
-            f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} | "
-            f"val_loss={val_loss:.4f} val_acc={val_acc:.4f} "
-            f"(best={best_val_acc:.4f})"
+    accuracy = accuracy_score(test_labels, test_preds)
+    f1_macro = f1_score(test_labels, test_preds, average="macro")
+
+    print(f"\n  Test Accuracy : {accuracy*100:.2f}%")
+    print(f"  Test F1 Macro : {f1_macro*100:.2f}%")
+    print("\n  Per-class report:")
+    print(classification_report(test_labels, test_preds, target_names=LABEL_NAMES))
+
+    # Save metrics to file
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    with open(f"{OUTPUT_DIR}/test_metrics.txt", "w") as mf:
+        mf.write(f"Test Accuracy: {accuracy*100:.2f}%\n")
+        mf.write(f"Test F1 Macro: {f1_macro*100:.2f}%\n\n")
+        mf.write(classification_report(test_labels, test_preds, target_names=LABEL_NAMES))
+    print(f"\n  Metrics saved to {OUTPUT_DIR}/test_metrics.txt")
+
+    # 7. Push to Hub
+    if args.push_to_hub:
+        print(f"\n▶ Pushing model to HuggingFace Hub → {args.hub_model_id} …")
+        trainer.push_to_hub(
+            commit_message="Fine-tuned DistilBERT for IT support ticket classification"
         )
+        print("  Done! 🎉")
 
-        if patience_counter >= args.patience:
-            print(f"\nEarly stopping triggered after {epoch} epochs.")
-            break
+    print(f"\n{'='*60}")
+    print(f"  Training complete.")
+    print(f"  Final Test Accuracy: {accuracy*100:.2f}%")
+    print(f"{'='*60}\n")
 
-    # ── Save artefacts ───────────────────────────
-    with open(out_dir / "history.json", "w") as f:
-        json.dump(history, f, indent=2)
-
-    print(f"\n✓ Training complete. Best val accuracy: {best_val_acc:.4f}")
-    print(f"  Model saved to: {out_dir / 'best_model.pth'}")
-    print(f"  History saved to: {out_dir / 'history.json'}")
+    return accuracy
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--push_to_hub", action="store_true",
+                        help="Push model to HuggingFace Hub after training")
+    parser.add_argument("--hub_model_id", type=str,
+                        default="vishwajeet456/distilbert-it-support-classifier",
+                        help="HuggingFace Hub model repo (username/model-name)")
+    args = parser.parse_args()
+    main(args)
