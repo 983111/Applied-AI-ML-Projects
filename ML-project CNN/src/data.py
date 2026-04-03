@@ -3,7 +3,7 @@ CIFAR-10 data loading with augmentation for training.
 """
 
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision import datasets, transforms
 
 CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
@@ -30,6 +30,32 @@ def get_transforms(train: bool) -> transforms.Compose:
     ])
 
 
+class TransformSubset(Dataset):
+    """
+    Wraps a Subset and applies its own transform, independent of the
+    underlying dataset's transform.  This avoids the bug where writing
+    val_set.dataset.transform = ... also mutates the training set's
+    transform (both share the same CIFAR10 dataset object).
+    """
+
+    def __init__(self, subset: torch.utils.data.Subset, transform):
+        self.subset    = subset
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.subset)
+
+    def __getitem__(self, idx):
+        img, label = self.subset.dataset.data[self.subset.indices[idx]], \
+                     self.subset.dataset.targets[self.subset.indices[idx]]
+        # dataset.data is a NumPy array (H, W, C); convert to PIL for transforms
+        from PIL import Image
+        img = Image.fromarray(img)
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, label
+
+
 def get_loaders(
     data_dir: str = "./data",
     batch_size: int = 128,
@@ -39,19 +65,29 @@ def get_loaders(
     """
     Returns (train_loader, val_loader, test_loader).
     Splits the official 50k training set into train/val.
+
+    The val split uses test-time transforms (no augmentation).
+    The train split uses training transforms (crop, flip, jitter).
+    Both operate on independent transform pipelines — mutating one
+    does NOT affect the other.
     """
-    train_data = datasets.CIFAR10(data_dir, train=True,  download=True, transform=get_transforms(True))
-    test_data  = datasets.CIFAR10(data_dir, train=False, download=True, transform=get_transforms(False))
+    # Load raw training data without any transform; transforms are applied
+    # per-split via TransformSubset so they never interfere with each other.
+    train_data_raw = datasets.CIFAR10(data_dir, train=True, download=True, transform=None)
+    test_data      = datasets.CIFAR10(data_dir, train=False, download=True,
+                                      transform=get_transforms(False))
 
     # Deterministic train/val split
-    n_val   = int(len(train_data) * val_split)
-    n_train = len(train_data) - n_val
-    train_set, val_set = random_split(
-        train_data, [n_train, n_val],
+    n_val   = int(len(train_data_raw) * val_split)
+    n_train = len(train_data_raw) - n_val
+    train_subset, val_subset = random_split(
+        train_data_raw, [n_train, n_val],
         generator=torch.Generator().manual_seed(42),
     )
-    # Val set should use test-time transforms
-    val_set.dataset.transform = get_transforms(False)
+
+    # Wrap each split with its own transform — no shared state
+    train_set = TransformSubset(train_subset, get_transforms(train=True))
+    val_set   = TransformSubset(val_subset,   get_transforms(train=False))
 
     loader_kwargs = dict(
         batch_size=batch_size, num_workers=num_workers,
