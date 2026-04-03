@@ -1200,9 +1200,20 @@ function makeSpiral(n=400) {
   return {X:X.map(r=>r.map(v=>v/mx)),y};
 }
 
-function shuffle(X,y){
+function makeSeededRng(seed=42){
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function shuffle(X,y,randFn=Math.random){
   const idx=Array.from({length:X.length},(_,i)=>i);
-  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  for(let i=idx.length-1;i>0;i--){
+    const j=Math.floor(randFn()*(i+1));
+    [idx[i],idx[j]]=[idx[j],idx[i]];
+  }
   return {X:idx.map(i=>X[i]),y:idx.map(i=>y[i])};
 }
 
@@ -1260,11 +1271,12 @@ async function doTraining(cell) {
   trainData=makeSpiral(400);
   globalNN=new NN([2,32,32,2],0.05);
   lossHist=[]; accHist=[];
+  const shuffleRand = makeSeededRng(1337);
   const body=document.getElementById('training-body');
   body.innerHTML='';
 
   for(let e=0;e<EPOCHS;e++){
-    const {X:Xs,y:ys}=shuffle(trainData.X,trainData.y);
+    const {X:Xs,y:ys}=shuffle(trainData.X,trainData.y,shuffleRand);
     for(let s=0;s<Xs.length;s+=32){
       const Xb=Xs.slice(s,s+32),yb=ys.slice(s,s+32);
       globalNN.forward(Xb);

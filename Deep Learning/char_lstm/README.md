@@ -1,4 +1,4 @@
-# 🧠 Character-Level LSTM — Next Sentence Predictor
+# 🧠 Character-Level LSTM — Next Character Predictor
 
 A **from-scratch** implementation of a character-level LSTM that predicts the
 next characters given a text seed — built with pure NumPy (no PyTorch, no
@@ -129,7 +129,7 @@ temp > 1.0  →  flat  distribution  →  creative / random output
 
 ## 📊 Expected Results
 
-After ~500 epochs the model learns:
+After ~500 epochs on this tiny toy corpus, the model mostly memorizes:
 - Common word completions (`hel` → `hello how are you`)
 - Basic grammar patterns
 - Sentence structure from training corpus
