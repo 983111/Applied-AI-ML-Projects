@@ -1,13 +1,29 @@
 """
 Generate publication-quality plots from training history and eval results.
 
-Usage:
+Usage (from project root):
     python src/visualize.py
+    python src/visualize.py --out-dir outputs --checkpoint outputs/best_model.pth
+
+Usage (from inside src/):
+    python visualize.py
 """
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+# ── Path fix ──────────────────────────────────────────────────────────────────
+# Ensure the directory that contains this file is on sys.path so that
+# `from data import ...` and `from model import ...` always resolve,
+# regardless of whether the script is invoked as:
+#   python src/visualize.py          (cwd = project root)
+#   python visualize.py              (cwd = src/)
+_SRC_DIR = Path(__file__).resolve().parent
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+# ─────────────────────────────────────────────────────────────────────────────
 
 import numpy as np
 import matplotlib
@@ -67,7 +83,7 @@ def plot_training_curves(history: dict, out_path: Path):
 
         # Best val marker
         if metric == "acc":
-            best_ep = int(np.argmax(val_vals)) + 1
+            best_ep  = int(np.argmax(val_vals)) + 1
             best_val = max(val_vals)
             ax.axvline(best_ep, color=PALETTE["accent2"], linewidth=1, linestyle=":")
             ax.annotate(f"Best: {best_val:.4f}",
@@ -82,8 +98,7 @@ def plot_training_curves(history: dict, out_path: Path):
         ax.legend(framealpha=0.2)
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150, bbox_inches="tight",
-                facecolor=PALETTE["bg"])
+    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     print(f"  Saved: {out_path}")
     plt.close(fig)
 
@@ -108,17 +123,15 @@ def plot_confusion_matrix(results: dict, out_path: Path):
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.ax.yaxis.set_tick_params(color=PALETTE["subtext"])
 
-    # Cell annotations
     for i in range(10):
         for j in range(10):
-            val = cm_norm[i, j]
+            val   = cm_norm[i, j]
             color = "white" if val < 0.5 else "#0f1117"
             ax.text(j, i, f"{val:.2f}", ha="center", va="center",
                     fontsize=7.5, color=color)
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150, bbox_inches="tight",
-                facecolor=PALETTE["bg"])
+    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     print(f"  Saved: {out_path}")
     plt.close(fig)
 
@@ -138,7 +151,8 @@ def plot_per_class_accuracy(results: dict, out_path: Path):
                    color=colors, height=0.65, edgecolor="none")
 
     ax.axvline(results["overall_accuracy"], color="white", linewidth=1.2,
-               linestyle="--", alpha=0.6, label=f"Overall: {results['overall_accuracy']:.4f}")
+               linestyle="--", alpha=0.6,
+               label=f"Overall: {results['overall_accuracy']:.4f}")
 
     for bar, val in zip(bars, np.array(accs)[order]):
         ax.text(val + 0.005, bar.get_y() + bar.get_height() / 2,
@@ -151,8 +165,7 @@ def plot_per_class_accuracy(results: dict, out_path: Path):
     ax.grid(axis="x", alpha=0.4)
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150, bbox_inches="tight",
-                facecolor=PALETTE["bg"])
+    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     print(f"  Saved: {out_path}")
     plt.close(fig)
 
@@ -160,7 +173,7 @@ def plot_per_class_accuracy(results: dict, out_path: Path):
 @torch.no_grad()
 def plot_sample_predictions(checkpoint: str, data_dir: str, out_path: Path):
     device = torch.device("cpu")
-    model = CIFAR10Net().to(device)
+    model  = CIFAR10Net().to(device)
     model.load_state_dict(torch.load(checkpoint, map_location=device))
     model.eval()
 
@@ -170,11 +183,10 @@ def plot_sample_predictions(checkpoint: str, data_dir: str, out_path: Path):
     probs   = torch.softmax(outputs, dim=1)
     preds   = outputs.argmax(dim=1)
 
-    # Un-normalise for display
     mean = torch.tensor(CIFAR10_MEAN).view(3, 1, 1)
     std  = torch.tensor(CIFAR10_STD).view(3, 1, 1)
 
-    n = 16
+    n   = 16
     fig = plt.figure(figsize=(14, 7))
     gs  = gridspec.GridSpec(2, 8, figure=fig, hspace=0.5, wspace=0.3)
 
@@ -186,19 +198,16 @@ def plot_sample_predictions(checkpoint: str, data_dir: str, out_path: Path):
         ax.imshow(img)
         ax.axis("off")
 
-        pred_cls  = CLASSES[preds[idx]]
-        true_cls  = CLASSES[labels[idx]]
-        conf      = probs[idx, preds[idx]].item()
-        correct   = preds[idx] == labels[idx]
+        pred_cls = CLASSES[preds[idx]]
+        conf     = probs[idx, preds[idx]].item()
+        correct  = preds[idx] == labels[idx]
 
         color = "#68d391" if correct else PALETTE["accent2"]
-        ax.set_title(f"{pred_cls}\n{conf:.0%}", fontsize=7.5,
-                     color=color, pad=2)
+        ax.set_title(f"{pred_cls}\n{conf:.0%}", fontsize=7.5, color=color, pad=2)
 
     fig.suptitle("Sample Predictions  (green = correct, red = wrong)",
                  fontsize=11, color=PALETTE["text"], y=1.02)
-    fig.savefig(out_path, dpi=150, bbox_inches="tight",
-                facecolor=PALETTE["bg"])
+    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     print(f"  Saved: {out_path}")
     plt.close(fig)
 
@@ -214,14 +223,13 @@ def parse_args():
 
 
 def main():
-    args = parse_args()
+    args    = parse_args()
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     apply_style()
     print("Generating plots…")
 
-    # Training curves
     history_path = out_dir / "history.json"
     if history_path.exists():
         history = json.loads(history_path.read_text())
@@ -229,19 +237,18 @@ def main():
     else:
         print(f"  Skipping training curves (no {history_path})")
 
-    # Confusion matrix + per-class accuracy
     results_path = out_dir / "eval_results.json"
     if results_path.exists():
         results = json.loads(results_path.read_text())
-        plot_confusion_matrix(     results, out_dir / "confusion_matrix.png")
-        plot_per_class_accuracy(   results, out_dir / "per_class_accuracy.png")
+        plot_confusion_matrix(   results, out_dir / "confusion_matrix.png")
+        plot_per_class_accuracy( results, out_dir / "per_class_accuracy.png")
     else:
         print(f"  Skipping eval plots (no {results_path})")
 
-    # Sample predictions
     ckpt = Path(args.checkpoint)
     if ckpt.exists():
-        plot_sample_predictions(str(ckpt), args.data_dir, out_dir / "sample_predictions.png")
+        plot_sample_predictions(str(ckpt), args.data_dir,
+                                out_dir / "sample_predictions.png")
     else:
         print(f"  Skipping sample predictions (no checkpoint at {ckpt})")
 
