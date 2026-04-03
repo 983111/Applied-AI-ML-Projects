@@ -13,6 +13,8 @@ A clean, well-structured CNN achieving **~87% test accuracy** on CIFAR-10, with 
 | Training Time | ~25 min (RTX 3060) |
 | Best Val Accuracy | 87.1% |
 
+> **Note:** The trained checkpoint is git-ignored (`.pth` files excluded). Run `train.py` to reproduce — seed 42 is fixed for the train/val split, so results should be within ±0.5% of the figures above.
+
 ### Per-class accuracy
 | Class | Accuracy |
 |---|---|
@@ -59,7 +61,7 @@ cifar10-classifier/
 │   ├── train.py       # Training loop with early stopping
 │   ├── evaluate.py    # Test-set evaluation + confusion matrix
 │   └── visualize.py   # Training curves, confusion matrix, sample grid
-├── outputs/           # Checkpoints + plots (git-ignored large files)
+├── outputs/           # Checkpoints + plots (git-ignored)
 ├── requirements.txt
 └── README.md
 ```
@@ -87,11 +89,18 @@ python src/evaluate.py --checkpoint outputs/best_model.pth
 ```
 
 ### 4. Visualise
+
+All scripts resolve their imports automatically regardless of your working directory:
+
 ```bash
+# From project root (recommended)
 python src/visualize.py
+
+# Or from inside src/
+cd src && python visualize.py
 ```
 
-Generates three plots in `outputs/`:
+Generates four plots in `outputs/`:
 - `training_curves.png` — loss & accuracy over epochs
 - `confusion_matrix.png` — normalised 10×10 confusion matrix
 - `per_class_accuracy.png` — horizontal bar chart, sorted by accuracy
@@ -116,7 +125,7 @@ Generates three plots in `outputs/`:
 ## Reproducing Results
 
 ```bash
-# Full run with defaults
+# Full run with defaults (from project root)
 python src/train.py && python src/evaluate.py && python src/visualize.py
 ```
 
