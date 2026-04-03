@@ -57,15 +57,16 @@ The model was trained on a **custom synthetic dataset** of 300 IT support ticket
 
 ```python
 TrainingArguments(
-    num_train_epochs        = 5,
+    num_train_epochs            = 5,
     per_device_train_batch_size = 16,
-    learning_rate           = 2e-5,
-    weight_decay            = 0.01,
-    warmup_ratio            = 0.1,
-    lr_scheduler_type       = "cosine",
-    eval_strategy           = "epoch",
-    load_best_model_at_end  = True,
-    metric_for_best_model   = "f1_macro",
+    learning_rate               = 2e-5,
+    weight_decay                = 0.01,
+    warmup_ratio                = 0.1,
+    lr_scheduler_type           = "cosine",
+    eval_strategy               = "epoch",   # transformers >= 4.40
+    save_strategy               = "epoch",
+    load_best_model_at_end      = True,
+    metric_for_best_model       = "f1_macro",
 )
 ```
 
@@ -90,7 +91,7 @@ Per-class breakdown:
 | account | 1.00 | 0.83 | 0.91 | 6 |
 | software | 0.86 | 1.00 | 0.92 | 6 |
 
-> Results are averaged over 3 random seeds; numbers above are from seed 42.
+> Results are from seed 42. The model was trained on synthetic data — see Limitations below.
 
 ## How to Use
 
@@ -101,7 +102,7 @@ from transformers import pipeline
 
 clf = pipeline(
     "text-classification",
-    model="your-username/distilbert-it-support-classifier",
+    model="vishwajeet456/distilbert-it-support-classifier",
 )
 
 tickets = [
@@ -121,7 +122,7 @@ for ticket in tickets:
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-model_id = "your-username/distilbert-it-support-classifier"
+model_id = "vishwajeet456/distilbert-it-support-classifier"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForSequenceClassification.from_pretrained(model_id)
 
@@ -167,7 +168,7 @@ The domain (IT support routing) is deliberately practical: every company with an
 ## Training Code
 
 Full training code and dataset generation scripts are available at:
-[github.com/your-username/distilbert-it-support-classifier](https://github.com/your-username/distilbert-it-support-classifier)
+[github.com/vishwajeet456/distilbert-it-support-classifier](https://github.com/vishwajeet456/distilbert-it-support-classifier)
 
 ## Citation
 
@@ -179,7 +180,7 @@ If you use this model or methodology, please cite:
   title     = {DistilBERT Fine-tuned for IT Support Ticket Classification},
   year      = {2024},
   publisher = {HuggingFace},
-  url       = {https://huggingface.co/your-username/distilbert-it-support-classifier}
+  url       = {https://huggingface.co/vishwajeet456/distilbert-it-support-classifier}
 }
 ```
 
