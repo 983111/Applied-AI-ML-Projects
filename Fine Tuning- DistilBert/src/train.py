@@ -8,10 +8,10 @@ optionally pushes the final model + tokenizer to HuggingFace Hub.
 Usage:
   python train.py                          # train locally
   python train.py --push_to_hub           # train + push to Hub
-  python train.py --hub_model_id your_username/distilbert-it-support-classifier
+  python train.py --hub_model_id vishwajeet456/distilbert-it-support-classifier
 
 Requirements:
-  pip install transformers datasets scikit-learn accelerate torch huggingface_hub
+  pip install transformers>=4.40 datasets scikit-learn accelerate torch huggingface_hub
 """
 
 import argparse
@@ -81,11 +81,7 @@ def load_csv_dataset(path: str) -> DatasetDict:
 
 def tokenize_dataset(dataset: DatasetDict, tokenizer) -> DatasetDict:
     def _tokenize(batch):
-        return tokenizer(
-            batch["text"],
-            truncation=True,
-            max_length=128,
-        )
+        return tokenizer(batch["text"], truncation=True, max_length=128)
     return dataset.map(_tokenize, batched=True, remove_columns=["text"])
 
 
@@ -130,6 +126,8 @@ def main(args):
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     # 3. Training arguments
+    # Note: eval_strategy is the current name (transformers >= 4.40).
+    # Older versions used evaluation_strategy — upgrade if you see a warning.
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         num_train_epochs=5,
@@ -146,7 +144,7 @@ def main(args):
         greater_is_better=True,
         logging_steps=10,
         seed=SEED,
-        report_to="none",        # set to "wandb" if you use W&B
+        report_to="none",
         push_to_hub=args.push_to_hub,
         hub_model_id=args.hub_model_id if args.push_to_hub else None,
         hub_strategy="end",
@@ -171,7 +169,7 @@ def main(args):
     # 6. Evaluate on held-out test set
     print("\n▶ Evaluating on test set …")
     test_preds_output = trainer.predict(tokenized["test"])
-    test_preds = np.argmax(test_preds_output.predictions, axis=-1)
+    test_preds  = np.argmax(test_preds_output.predictions, axis=-1)
     test_labels = test_preds_output.label_ids
 
     accuracy = accuracy_score(test_labels, test_preds)
@@ -193,7 +191,9 @@ def main(args):
     # 7. Push to Hub
     if args.push_to_hub:
         print(f"\n▶ Pushing model to HuggingFace Hub → {args.hub_model_id} …")
-        trainer.push_to_hub(commit_message="Fine-tuned DistilBERT for IT support ticket classification")
+        trainer.push_to_hub(
+            commit_message="Fine-tuned DistilBERT for IT support ticket classification"
+        )
         print("  Done! 🎉")
 
     print(f"\n{'='*60}")
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     parser.add_argument("--push_to_hub", action="store_true",
                         help="Push model to HuggingFace Hub after training")
     parser.add_argument("--hub_model_id", type=str,
-                        default="your-username/distilbert-it-support-classifier",
+                        default="vishwajeet456/distilbert-it-support-classifier",
                         help="HuggingFace Hub model repo (username/model-name)")
     args = parser.parse_args()
     main(args)
