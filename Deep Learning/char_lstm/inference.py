@@ -6,13 +6,16 @@ def generate(seed, length=50, temp=0.7):
     weights = np.load("saved_model/weights.npz")
     c2i, i2c = meta["vocab"], {v: k for k, v in meta["vocab"].items()}
     
-    embed = EmbeddingLayer(meta["vocab_size"], 16)
-    lstm = LSTMCell(16, 128)
-    decoder = LinearDecoder(128, meta["vocab_size"])
+    embed_dim = meta.get("embed_dim", weights["emb_E"].shape[1])
+    hidden_size = meta.get("hidden_size", weights["lstm_W_h"].shape[1])
+
+    embed = EmbeddingLayer(meta["vocab_size"], embed_dim)
+    lstm = LSTMCell(embed_dim, hidden_size)
+    decoder = LinearDecoder(hidden_size, meta["vocab_size"])
     
     embed.E, lstm.W_x, lstm.W_h, lstm.b, decoder.W, decoder.b = weights['emb_E'], weights['lstm_W_x'], weights['lstm_W_h'], weights['lstm_b'], weights['dec_W'], weights['dec_b']
 
-    h, c = np.zeros(128), np.zeros(128)
+    h, c = np.zeros(hidden_size), np.zeros(hidden_size)
     # Prime the model with the seed
     for char in seed[:-1]:
         if char in c2i:

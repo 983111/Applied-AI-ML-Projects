@@ -962,11 +962,11 @@ function renderNotebook() {
   if (doneCount >= 3) {
     const bWins = done.filter(e=>results[e.id].winner==='B').length;
     const findings = [
-      `<strong>Hypothesis confirmation rate: ${Math.round(bWins/doneCount*100)}%</strong> — In ${bWins} of ${doneCount} completed experiments, the enhanced Prompt B outperformed the baseline, confirming that deliberate prompt engineering produces measurably better outputs.`,
-      `<strong>Specificity is the most consistent lever.</strong> Across experiments testing instruction clarity and format constraints, explicit prompts consistently outscored vague ones — often by the widest margins. Ambiguity in prompts produces ambiguity in outputs.`,
-      `<strong>Structure amplifies capability.</strong> Chain-of-thought scaffolding and task decomposition allow the model to demonstrate reasoning ability it cannot surface when forced into a single-step answer — the capability was always present; the prompt unlocked it.`,
-      `<strong>Context shapes voice.</strong> Rich system context and persona assignment do not merely change tone — they produce structurally different responses with domain-appropriate vocabulary, audience calibration, and policy adherence that generic prompts cannot replicate.`,
-      `<strong>Practical implication:</strong> Prompt engineering is not about writing "magic words" — it is about reducing the model's search space. Every constraint, example, and structural cue reduces ambiguity and narrows the distribution of possible outputs toward the desired target.`
+      `<strong>Hypothesis confirmation rate: ${Math.round(bWins/doneCount*100)}%</strong> — In ${bWins} of ${doneCount} completed experiments, the enhanced Prompt B outperformed the baseline. The effects are real but mixed, which is expected in empirical prompt testing.`,
+      `<strong>Specificity is usually helpful, but not universally dominant.</strong> Explicit constraints improve format reliability, yet task goals can favor broader instructions when richness and coverage matter.`,
+      `<strong>Reasoning scaffolds are context-dependent.</strong> In this run, chain-of-thought and decomposition did not always outperform direct or single-step prompts, indicating that prompt structure must match the deliverable format.`,
+      `<strong>Context and persona remain strong levers.</strong> Rich system context and role assignment consistently improved audience calibration, policy realism, and domain tone.`,
+      `<strong>Reproducibility note:</strong> Use the Export tab to save Markdown + raw JSON so results can be independently verified and rerun with the same experiment setup.`
     ];
     document.getElementById('nbConclusions').innerHTML = `
       <div class="nb-conclusions">
@@ -991,7 +991,7 @@ function generateMarkdown() {
     md += `### E${String(i+1).padStart(2,'0')}: ${e.title}\n\n**Category:** ${e.category}  \n**Task:** ${e.task}  \n**Variable:** ${e.variable}  \n**Hypothesis:** ${e.hypothesis}\n\n| Metric | ${e.promptA.label} | ${e.promptB.label} |\n|--------|---------|--------|\n| Total Score | ${r.scoreA}/10 | ${r.scoreB}/10 |\n| Accuracy | ${r.rubricA?.accuracy||'—'} | ${r.rubricB?.accuracy||'—'} |\n| Clarity | ${r.rubricA?.clarity||'—'} | ${r.rubricB?.clarity||'—'} |\n| Format | ${r.rubricA?.format||'—'} | ${r.rubricB?.format||'—'} |\n| Relevance | ${r.rubricA?.relevance||'—'} | ${r.rubricB?.relevance||'—'} |\n| Latency (ms) | ${r.latencyA} | ${r.latencyB} |\n| Word Count | ${r.wordsA} | ${r.wordsB} |\n\n**Winner:** ${win}\n\n**Analysis:** ${r.analysis}\n\n---\n\n`;
   });
   const bWins = done.filter(e=>results[e.id].winner==='B').length;
-  md += `## Conclusions\n\n- Hypothesis confirmation rate: **${done.length?Math.round(bWins/done.length*100):0}%** (${bWins}/${done.length} experiments)\n- Specificity, structure, and context are the three most impactful prompt engineering levers\n- Chain-of-thought and task decomposition unlock latent model reasoning capability\n- Deliberate prompt design consistently produces measurably better outputs\n`;
+  md += `## Conclusions\n\n- Hypothesis confirmation rate: **${done.length?Math.round(bWins/done.length*100):0}%** (${bWins}/${done.length} experiments)\n- Specificity, format constraints, and context are strong prompt-engineering levers, but outcomes vary by task\n- Chain-of-thought and task decomposition were mixed in this run; some direct and single-step prompts scored higher\n- Deliberate prompt design still yields measurable gains when matched to task goals\n\n## Reproducibility & Verification\n\n- Export this notebook's Markdown + JSON from the **Export** tab to preserve prompts, outputs, scores, and rubric breakdowns\n- Re-run experiments with the same model/settings to validate whether findings replicate\n`;
   return md;
 }
 

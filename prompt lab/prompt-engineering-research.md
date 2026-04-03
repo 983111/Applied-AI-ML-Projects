@@ -208,6 +208,11 @@ This lab investigates the empirical impact of prompt design strategies on large 
 ## Conclusions
 
 - Hypothesis confirmation rate: **50%** (4/8 experiments)
-- Specificity, structure, and context are the three most impactful prompt engineering levers
-- Chain-of-thought and task decomposition unlock latent model reasoning capability
-- Deliberate prompt design consistently produces measurably better outputs
+- Specificity, format constraints, and context are strong prompt engineering levers, but outcomes vary by task
+- Chain-of-thought and task decomposition were mixed in this run; direct and single-step prompts won in E03 and E08
+- Deliberate prompt design still produces measurable gains when the strategy matches the deliverable
+
+## Reproducibility & Verification
+
+- Export and attach the raw JSON logs (prompts, outputs, rubric scores, latency, and word counts) from the lab UI for independent review.
+- Re-run all experiments with the same model/settings to verify whether the same winners and margins replicate.
