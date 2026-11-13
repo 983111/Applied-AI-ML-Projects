@@ -1,0 +1,15 @@
+{
+  "classes": {
+    "askubuntu": "Linux",
+    "apple": "Apple",
+    "android": "Android",
+    "serverfault": "Server & Network",
+    "security": "Security"
+  },
+  "per_class": 4000,
+  "max_len": 256,
+  "epochs": 3,
+  "lr": 2e-05,
+  "batch_size": 32,
+  "dataset": "flax-sentence-embeddings/stackexchange_titlebody_best_voted_answer_jsonl"
+}
