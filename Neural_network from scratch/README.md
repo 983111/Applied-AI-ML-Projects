@@ -90,7 +90,6 @@ Fill this in after running the notebook on MNIST:
 | Test loss | 0.0824 |
 | Training time (Colab CPU) | 88.2s |
 
-Add a screenshot of your loss/accuracy curves and confusion matrix here, for example `![curves](images/curves.png)`.
 
 ## Notebook Structure
 
