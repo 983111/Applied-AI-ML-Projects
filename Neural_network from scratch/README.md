@@ -4,7 +4,7 @@ A fully-connected neural network built with **only NumPy** — no deep-learning 
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/<your-username>/<your-repo>/blob/main/neural_network_numpy.ipynb)
 
-> Replace `<your-username>` and `<your-repo>` in the badge link after you push this to GitHub.
+> Replace `983111` and `<your-repo>` in the badge link after you push this to GitHub.
 
 ## Highlights
 
