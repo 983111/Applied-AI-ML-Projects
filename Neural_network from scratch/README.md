@@ -3,6 +3,7 @@
 A fully-connected neural network built with **only NumPy** — no deep-learning frameworks for the model. It implements forward propagation, backpropagation and mini-batch SGD, and is trained on handwritten-digit classification (MNIST).
 
 
+
 ## Highlights
 
 - **Forward propagation** with ReLU hidden layers and a softmax output
@@ -18,7 +19,7 @@ A fully-connected neural network built with **only NumPy** — no deep-learning 
 Input (784) → Dense 128 + ReLU → Dense 64 + ReLU → Dense 32 + ReLU → Dense 10 + Softmax
 ```
 
-Four weight layers (three hidden, one output), about 109k parameters on MNIST.
+Four weight layers (three hidden, one output), 111,146 parameters on MNIST.
 
 ## The Maths
 
@@ -86,9 +87,10 @@ Fill this in after running the notebook on MNIST:
 
 | Metric | Value |
 |--------|-------|
-| Test accuracy | 97.83%  |
-| Test loss | 0.0824 |
-| Training time (Colab CPU) | 88.2s |
+| Test accuracy | 97.83% |
+| Test loss |0.0824 |
+| Training time (Colab CPU) | 88.2s|
+
 
 
 ## Notebook Structure
