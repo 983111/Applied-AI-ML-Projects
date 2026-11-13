@@ -2,9 +2,6 @@
 
 A compact VGG-style convolutional neural network (**1,197,578 parameters**) trained from scratch on CIFAR-10 with PyTorch.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/<your-username>/<your-repo>/blob/main/cnn_cifar10_classifier.ipynb)
-
-> Replace `<your-username>` and `<your-repo>` after pushing to GitHub.
 
 ## Highlights
 
@@ -61,7 +58,7 @@ To run locally: `pip install torch torchvision matplotlib scikit-learn` (the "up
 
 ## Results
 
-Fill in after running:
+
 
 | Metric | Value |
 |--------|-------|
@@ -69,8 +66,7 @@ Fill in after running:
 | Test accuracy (top-3) | 98.77% |
 | Best validation accuracy | 91.66% (reached in Epoch 30) |
 | Training time (GPU used) | 8.5 minutes (using a Tesla T4 GPU) |
-
-Add `![curves](images/curves.png)` and `![confusion matrix](images/confusion_matrix.png)` plus a short note on the most confused classes. Cats vs dogs is the usual weak spot on CIFAR-10, so check whether yours matches.
+.
 
 ## Repository Layout
 
