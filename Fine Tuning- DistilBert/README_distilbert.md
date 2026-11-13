@@ -2,9 +2,6 @@
 
 Fine-tunes `distilbert-base-uncased` to route IT-support questions into **five support queues**. The training data is **real, human-written text** from Stack Exchange, not synthetic or LLM-generated.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/<your-username>/<your-repo>/blob/main/distilbert_it_support_classification.ipynb)
-
-> Replace `<your-username>` and `<your-repo>` after pushing to GitHub.
 
 ## Classes
 
@@ -65,11 +62,10 @@ All are set in the configuration cell at the top of the notebook.
 
 | Model | Accuracy | Macro-F1 |
 |-------|----------|----------|
-| TF-IDF + Logistic Regression | _your result_ | _your result_ |
-| TF-IDF, brand words masked | _your result_ | _your result_ |
-| DistilBERT (fine-tuned) | _your result_ | _your result_ |
+| TF-IDF + Logistic Regression |0.8940 | 0.8941 |
+| TF-IDF, brand words masked | 0.8605 | 0.8604 |
+| DistilBERT (fine-tuned) | 0.8930 | 0.8927 |
 
-Add `![confusion matrix](images/confusion_matrix.png)`
 
 ## Troubleshooting
 
