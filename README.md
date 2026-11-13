@@ -1,173 +1,164 @@
+# Applied AI & ML Projects
 
+A collection of hands-on projects exploring machine learning, deep learning, computer vision, and natural language processing. This repository brings together implementations built from scratch, model fine-tuning experiments, and complete training and evaluation workflows.
 
-# Applied AI & ML Projects Ecosystem
+The projects are organised around understanding how models work, building them, and evaluating their behaviour—not just calling a pre-trained model.
 
-Welcome to the **Applied AI & ML Projects** repository. This monorepo serves as a comprehensive portfolio and workspace for practical, end-to-end artificial intelligence and machine learning implementations. 
+## Projects
 
-The projects span across classic Computer Vision (CNNs), deep Natural Language Processing (Transformers and LSTMs), fundamental algorithm design (Neural Networks from scratch), and modern LLM interaction techniques (Prompt Engineering).
+### 1. Neural Network from Scratch — NumPy
 
-## Table of Contents
+A four-layer fully connected neural network implemented using NumPy, without PyTorch, TensorFlow, or Keras for the model itself. It is trained on the MNIST handwritten-digit dataset.
 
-- [Projects Overview](#projects-overview)
-  - [1. Fine-Tuning DistilBERT (IT Support Classifier)](#1-fine-tuning-distilbert-it-support-classifier)
-  - [2. Deep Learning: Character-Level LSTM](#2-deep-learning-character-level-lstm)
-  - [3. ML Project: CNN Pipeline](#3-ml-project-cnn-pipeline)
-  - [4. Neural Network from Scratch](#4-neural-network-from-scratch)
-  - [5. Prompt Engineering Lab](#5-prompt-engineering-lab)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
-- [Detailed Features](#detailed-features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Running the Projects](#running-the-projects)
-- [Contributing](#contributing)
-- [License](#license)
+**What it covers**
+- Forward propagation through three ReLU hidden layers and a softmax output layer.
+- Backpropagation implemented manually and checked with numerical gradient checking (relative error around 1e-8).
+- Mini-batch stochastic gradient descent, learning-rate decay, and optional L2 regularisation.
+- He weight initialisation, loss and accuracy tracking, confusion matrix, and per-class precision, recall, and F1.
+- Saving and reloading model weights.
 
-## Projects Overview
+**Architecture**
 
-### 1. Fine-Tuning DistilBERT (IT Support Classifier)
-A complete NLP pipeline designed to automatically classify IT support tickets. By fine-tuning a pre-trained `DistilBERT` model from Hugging Face, this project demonstrates how to leverage transfer learning for domain-specific text classification tasks.
+`784 → 128 → 64 → 32 → 10`
 
-### 2. Deep Learning: Character-Level LSTM
-A sequential deep learning model built to predict and generate text character by character. Utilizing Long Short-Term Memory (LSTM) networks, this project explores temporal data dependencies, vanishing gradients, and text generation techniques.
+**Files**
+- [Open the NumPy notebook](Neural_network%20from%20scratch/neural_network_numpy.ipynb)
+- [Project documentation](Neural_network%20from%20scratch/README.md)
 
-### 3. ML Project: CNN Pipeline
-A highly modularized Convolutional Neural Network (CNN) pipeline for image classification. It encapsulates best practices in deep learning engineering, separating data loading, model architecture, training loops, and evaluation metrics into distinct, reusable modules.
+### 2. CNN Image Classifier — CIFAR-10 (PyTorch)
 
-### 4. Neural Network from Scratch
-An educational deep-dive into the mathematics of Deep Learning. This project implements a fully functional multi-layer perceptron (MLP) without relying on heavy frameworks like PyTorch or TensorFlow, providing a transparent view of forward propagation, loss calculations, and backpropagation.
+A compact VGG-style convolutional neural network trained from scratch on CIFAR-10. The model has **1,197,578 parameters** and classifies images into the dataset's 10 categories.
+
+**What it covers**
+- Six convolutional layers arranged in three blocks, with BatchNorm, ReLU, and max pooling.
+- Global average pooling and a dropout-based classification head.
+- Random crop and horizontal-flip augmentation.
+- SGD with Nesterov momentum, a one-cycle learning-rate schedule, weight decay, and label smoothing.
+- Mixed-precision training on GPU.
+- Evaluation using top-1 and top-3 accuracy, per-class metrics, a confusion matrix, and error analysis.
+- Visualisation of learned filters and feature maps, plus an image prediction demo.
+
+**Architecture**
+
+`Input (3 × 32 × 32) → Conv blocks (64, 128, 256 channels) → Global Average Pooling → 192-unit head → 10 classes`
+
+The notebook keeps a 5,000-image validation split separate from the official 10,000-image test set. The test set is reserved for final evaluation.
+
+**Files**
+- [Open the CNN notebook](ML-project%20CNN/cnn_cifar10_classifier.ipynb)
+- [Project documentation](ML-project%20CNN/README_cnn_cifar10.md)
+- [Confusion matrix](ML-project%20CNN/image/confusion_matrix.png)
+
+### 3. Fine-Tuning DistilBERT — IT Support Classification
+
+A text-classification project that fine-tunes `distilbert-base-uncased` to route IT-support questions into five support categories.
+
+**Dataset and task**
+- Uses real, human-written questions from Stack Exchange communities.
+- Includes five categories: Linux, Apple, Android, Server & Network, and Security.
+- Uses 20,000 questions in total (4,000 per category), with a stratified train/validation/test split.
+- Stack Exchange community is used as the label. These questions are a proxy for support tickets, not a collection of manually labelled real IT tickets.
+
+**What it covers**
+- Text cleaning, de-duplication, and dataset preparation.
+- TF-IDF with Logistic Regression as a baseline, including a keyword-masked variant.
+- Fine-tuning DistilBERT with the Hugging Face Transformers library.
+- Evaluation using accuracy, macro-F1, per-class metrics, a confusion matrix, and confident-error analysis.
+- Inference on new support questions and model export.
+
+**Files**
+- [Open the DistilBERT notebook](Fine%20Tuning-%20DistilBert/distilbert_it_support_classification.ipynb)
+- [Project documentation](Fine%20Tuning-%20DistilBert/README_distilbert.md)
+
+### 4. Character-Level LSTM — Text Generation
+
+A character-level recurrent neural network that learns patterns in text and generates sequences one character at a time.
+
+**What it covers**
+- LSTM-based sequence modelling.
+- Character-level text preparation and generation.
+- Training and inference scripts, with temperature-based sampling.
+- Loss visualisation and saved model checkpoints.
+
+**Files**
+- [Project folder](Deep%20Learning/char_lstm/)
+- [Project documentation](Deep%20Learning/char_lstm/README.md)
 
 ### 5. Prompt Engineering Lab
-A research-oriented workspace focused on mastering interactions with Large Language Models (LLMs). It includes comprehensive research documentation and an interactive HTML lab to test and refine various prompting techniques.
 
-## Project Structure
+A small learning and experimentation space for understanding how prompt structure affects responses from large language models.
 
-```text
-.
-├── Fine Tuning- DistilBert/
-│   ├── data/                           # Raw and processed CSV datasets
-│   ├── src/                            # Training, inference, and dataset creation scripts
-│   ├── DistilBERT_IT_Support_Classifier.ipynb # Interactive notebook for fine-tuning
-│   └── requirements.txt
-│
-├── Deep Learning/
-│   └── char_lstm/
-│       ├── model.py                    # LSTM architecture definition
-│       ├── train.py                    # Training loop and backpropagation
-│       ├── inference.py                # Text generation script
-│       ├── visualize.py                # Loss curve visualizations
-│       └── saved_model/                # Serialized weights (.npz) and metadata
-│
-├── ML-project CNN/
-│   ├── src/
-│   │   ├── data.py                     # Data augmentation and loaders
-│   │   ├── model.py                    # CNN architecture
-│   │   ├── train.py                    # Training pipeline
-│   │   ├── evaluate.py                 # Evaluation metrics
-│   │   └── visualize.py                # Feature map and result visualizer
-│   └── requirements.txt
-│
-├── Neural_network from scratch/
-│   └── nn_notebook.html                # Interactive notebook rendering the scratch implementation
-│
-└── prompt lab/
-    ├── prompt-engineering-research.md  # Research notes on few-shot, chain-of-thought, etc.
-    └── prompt-lab.html                 # Interactive prompt testing UI
-```
+**What it covers**
+- Zero-shot and few-shot prompting.
+- Chain-of-thought and ReAct-style prompting concepts.
+- Research notes and an interactive HTML prompt-testing interface.
+
+**Files**
+- [Prompt lab folder](prompt%20lab/)
+
+---
 
 ## Technology Stack
 
-- **Core Languages:** Python 3.9+, HTML/CSS
-- **Deep Learning Frameworks:** PyTorch / TensorFlow / Keras (selected per module)
-- **NLP Ecosystem:** Hugging Face Transformers, Datasets, Tokenizers
-- **Data Processing & Math:** NumPy, Pandas
-- **Visualization:** Matplotlib, Seaborn
-- **Environment:** Jupyter Notebooks
-
-## Detailed Features
-
-### Fine-Tuning DistilBERT
-- **Custom Dataset Generation (`create_dataset.py`):** Tools to synthesize and clean IT support ticket data.
-- **Transfer Learning (`train.py`):** Modifies the final classification head of DistilBERT for multi‑class classification.
-- **Inference API (`inference.py`):** A lightweight script to pass raw text strings and receive support‑ticket category predictions.
-
-### Character-Level LSTM
-- **Custom Architecture (`model.py`):** A pure LSTM implementation mapping one‑hot encoded characters to hidden states.
-- **Stateful Text Generation (`inference.py`):** Utilizes temperature scaling to control the randomness/creativity of the generated text.
-- **Model Checkpointing:** Saves model weights (`weights.npz`) and loss histories (`loss_history.json`) for seamless experiment tracking.
-
-### CNN Modular Pipeline
-- **Separation of Concerns:** Deep‑learning best practices are applied by decoupling model, data, training, and evaluation logic.
-- **Visualization Tools (`visualize.py`):** Scripts to plot training/validation loss curves and visualize learned feature maps.
-
-### Prompt Lab
-- **Theoretical Frameworks:** Detailed markdown files breaking down Zero‑shot, Few‑shot, Chain‑of‑Thought (CoT), and ReAct prompting.
-- **Interactive HTML:** A zero‑setup HTML file to simulate and structure prompts before sending them to production LLM APIs.
+| Area | Tools |
+|---|---|
+| Programming | Python |
+| Numerical computing | NumPy |
+| Deep learning | PyTorch |
+| NLP and transformers | Hugging Face Transformers, Datasets, Tokenizers |
+| Data handling | Pandas |
+| Computer vision | Torchvision |
+| Evaluation | Scikit-learn |
+| Visualisation | Matplotlib |
+| Experiment environment | Jupyter Notebook, Google Colab |
 
 ## Getting Started
 
-### Prerequisites
-Ensure you have Python 3.9+ installed. It is highly recommended to use a virtual environment (venv or conda).
+Most notebook-based projects can be run in Google Colab. Open the relevant notebook from the project links above, select a GPU runtime where required, and run the cells in order.
+
+For local execution, clone the repository:
 
 ```bash
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone https://github.com/983111/Applied-AI-ML-Projects.git
+cd Applied-AI-ML-Projects
 ```
 
-### Running the Projects
+Install the dependencies required by the individual project. Refer to its documentation for the specific setup and execution instructions.
 
-#### 1. Fine‑Tuning DistilBERT
-```bash
-cd "Fine Tuning- DistilBert"
-pip install -r requirements.txt
+## Repository Structure
 
-# Train the model via script
-python src/train.py
-
-# Or open the Jupyter Notebook to run step‑by‑step
-jupyter notebook DistilBERT_IT_Support_Classifier.ipynb
+```text
+Applied-AI-ML-Projects/
+├── Neural_network from scratch/
+│   ├── neural_network_numpy.ipynb
+│   └── README.md
+├── ML-project CNN/
+│   ├── cnn_cifar10_classifier.ipynb
+│   ├── README_cnn_cifar10.md
+│   ├── cifar_cnn.pt
+│   └── image/
+│       └── confusion_matrix.png
+├── Fine Tuning- DistilBert/
+│   ├── distilbert_it_support_classification.ipynb
+│   ├── README_distilbert.md
+│   └── model_files/
+├── Deep Learning/
+│   └── char_lstm/
+│       └── README.md
+└── prompt lab/
 ```
 
-#### 2. Deep Learning (Char LSTM)
-```bash
-cd "Deep Learning/char_lstm"
+## Notes
 
-# Train the LSTM
-python train.py
+- Reported architecture details and training configurations are documented in each project's README or notebook.
+- Model performance values are intentionally not stated here unless supported by recorded experiment outputs. Run the notebooks to reproduce and record the results.
+- Dataset licences and usage conditions should be checked before redistributing datasets or using them commercially.
 
-# Generate new text
-python inference.py
+## Author
 
-# View loss curves
-python visualize.py
-```
-
-#### 3. CNN ML Project
-```bash
-cd "ML-project CNN"
-pip install -r requirements.txt
-
-# Run the end‑to‑end pipeline
-python src/train.py
-python src/evaluate.py
-```
-
-#### 4. Educational Notebooks & HTML Labs
-No heavy installation is required for the HTML files. Simply open them in any modern web browser:
-
-- **macOS:** `open "prompt lab/prompt-lab.html"`
-- **Linux:** `xdg-open "Neural_network from scratch/nn_notebook.html"`
-- **Windows:** Double‑click the file in Windows Explorer.
-
-## Contributing
-Contributions, issues, and feature requests are welcome!
-
-1. **Fork** the project.
-2. **Create** your feature branch: `git checkout -b feature/AmazingModel`.
-3. **Commit** your changes: `git commit -m 'Add some AmazingModel'`.
-4. **Push** to the branch: `git push origin feature/AmazingModel`.
-5. **Open** a Pull Request.
+**Vishwajeet Adkine**  
+[Portfolio](https://prt-delta.vercel.app/) · [GitHub](https://github.com/983111)
 
 ## License
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+
+This repository is distributed under the MIT License. See the [LICENSE](LICENSE) file for details.
