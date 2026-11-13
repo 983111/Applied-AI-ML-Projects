@@ -65,10 +65,10 @@ Fill in after running:
 
 | Metric | Value |
 |--------|-------|
-| Test accuracy (top-1) | _your result_ |
-| Test accuracy (top-3) | _your result_ |
-| Best validation accuracy | _your result_ |
-| Training time (GPU used) | _your result_ |
+| Test accuracy (top-1) | 92.23% |
+| Test accuracy (top-3) | 98.77% |
+| Best validation accuracy | 91.66% (reached in Epoch 30) |
+| Training time (GPU used) | 8.5 minutes (using a Tesla T4 GPU) |
 
 Add `![curves](images/curves.png)` and `![confusion matrix](images/confusion_matrix.png)` plus a short note on the most confused classes. Cats vs dogs is the usual weak spot on CIFAR-10, so check whether yours matches.
 
