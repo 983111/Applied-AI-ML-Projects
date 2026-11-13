@@ -69,7 +69,7 @@ All are set in the configuration cell at the top of the notebook.
 | TF-IDF, brand words masked | _your result_ | _your result_ |
 | DistilBERT (fine-tuned) | _your result_ | _your result_ |
 
-Add `![confusion matrix](images/confusion_matrix.png)` and a short note on which classes are confused most.
+Add `![confusion matrix](images/confusion_matrix.png)`
 
 ## Troubleshooting
 
