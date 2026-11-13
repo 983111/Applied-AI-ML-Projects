@@ -2,9 +2,6 @@
 
 A fully-connected neural network built with **only NumPy** — no deep-learning frameworks for the model. It implements forward propagation, backpropagation and mini-batch SGD, and is trained on handwritten-digit classification (MNIST).
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/983111/https://github.com/983111/Applied-AI-ML-Projects/tree/main/Neural_network%20from%20scratch/blob/main/neural_network_numpy.ipynb)
-
-> Replace `983111` and `<your-repo>` in the badge link after you push this to GitHub.
 
 ## Highlights
 
