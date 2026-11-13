@@ -178,7 +178,7 @@ If you use this model or methodology, please cite:
 @misc{distilbert-it-support-2024,
   author    = {Vishwajeet Adkine},
   title     = {DistilBERT Fine-tuned for IT Support Ticket Classification},
-  year      = {2024},
+  year      = {2026},
   publisher = {HuggingFace},
   url       = {https://huggingface.co/vishwajeet456/distilbert-it-support-classifier}
 }
